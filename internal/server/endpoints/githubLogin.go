@@ -1,96 +1,93 @@
 package endpoints
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/google/go-github/github"
+	"github.com/szmulinho/github-login/internal/model"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/github"
 	"net/http"
 )
 
 var (
-	githubOauthConfig = oauth2.Config{
+	oauthConfig = oauth2.Config{
 		ClientID:     "065d047663d40d183c04",
 		ClientSecret: "7b7c2239b98e0b66d53e6b2adbfd8722561512f4",
 		RedirectURL:  "http://localhost:5173/profile",
-		Endpoint:     github.Endpoint,
-		Scopes:       []string{"user:email"},
+		Scopes:       []string{"user", "repo"},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://github.com/login/oauth/authorize",
+			TokenURL: "https://github.com/login/oauth/access_token",
+		},
 	}
 )
 
 func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	handler := gologin.NewHandler("https://github.com/", "client_id", "client_secret")
-
-	handler.HandleLogin(w, r)
+	http.Redirect(w, r, oauthConfig.AuthCodeURL("", oauth2.AccessTypeOffline), http.StatusFound)
 }
 
-func (h *endpoints.handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
-	user, err := handler.UserFromContext(r.Context())
+func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	code := r.URL.Query().Get("code")
+	token, err := oauthConfig.Exchange(ctx, code)
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		// Handle error
 		return
 	}
 
-	hasAccess := hasAccessToRepositories(user)
+	client := github.NewClient(oauthConfig.Client(ctx, token))
 
-	role := "user"
-	if hasAccess {
-		role = "admin"
-	}
-
-	insertUser(user, role)
-
-	http.Redirect(w, r, "/", http.StatusFound)
-}
-
-func (h *handlers) HasAccessToRepositories(user *gologin.User) bool {
-	repositories, err := getRepositories(user)
+	// Get user info
+	user, _, err := client.Users.Get(ctx, "")
 	if err != nil {
-		fmt.Println(err)
-		return false
+		// Handle error
+		return
 	}
 
-	for _, repository := range repositories {
-		if repository.Permissions.Admin {
-			return true
+	fmt.Println("User's Name:", user.GetName())
+
+	repos, _, err := client.Repositories.List(ctx, "", &github.RepositoryListOptions{})
+	if err != nil {
+		// Handle error
+		return
+	}
+
+	desiredRepos := []string{"szmulinho/szmul-med", "szmulinho/drugstore", "szmulinho/prescription"}
+
+	var isAdmin bool
+	for _, repo := range repos {
+		for _, desiredRepo := range desiredRepos {
+			if repo.GetFullName() == desiredRepo {
+				isAdmin = true
+				break
+			}
+		}
+		if isAdmin {
+			break
 		}
 	}
-
-	return false
-}
-
-func (h *handlers) GetRepositories(user *gologin.User) ([]*gologin.Repository, error) {
-	request := gologin.RepositoryListRequest{
-		User: user.Username,
+	var role string
+	if isAdmin {
+		role = "admin"
+	} else {
+		role = "user"
 	}
 
-	// Pobierz listę repozytoriów
-	repositories, err := handler.ListRepositories(request)
+	// Tworzenie obiektu GithubUser
+	githubUser := model.GithubUser{
+		ID:    user.GetID(),
+		Name:  user.GetName(),
+		Email: user.GetEmail(),
+		Role:  role,
+	}
+
+	jsonResponse, err := json.Marshal(githubUser)
 	if err != nil {
-		return nil, err
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 
-	return repositories, nil
-}
-
-func insertUser(user *gologin.User, role string) error {
-	// Utwórz połączenie z bazą danych
-	db, err := dbConnect()
-	if err != nil {
-		return err
-	}
-
-	// Wygeneruj zapytanie SQL
-	stmt, err := db.Prepare("INSERT INTO users (username, role) VALUES ($1, $2)")
-	if err != nil {
-		return err
-	}
-
-	// Wykonaj zapytanie SQL
-	_, err = stmt.Exec(user.Username, role)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResponse)
 }
