@@ -1,19 +1,8 @@
 package model
 
-import (
-	"os"
-)
-
-type Drug struct {
-	DrugID int64  `json:"drug_id" gorm:"primaryKey;autoIncrement"`
-	Name   string `json:"name"`
-	Price  int64  `json:"price"`
+type GithubUser struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Role  string `json:"role"`
 }
-
-var Drugs []Drug
-
-type Exception struct {
-	Message string `json:"message"`
-}
-
-var JwtKey = []byte(os.Getenv("JWT_KEY"))
