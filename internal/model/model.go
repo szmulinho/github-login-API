@@ -1,12 +1,16 @@
 package model
 
-import "os"
+import (
+	"gorm.io/gorm"
+	"os"
+)
 
 type GithubUser struct {
-	ID    int64  `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
+	gorm.DB
+	GithubUserID int64  `json:"id"`
+	Name         string `json:"name"`
+	Email        string `json:"email"`
+	Role         string `json:"role"`
 }
 
 var JwtKey = []byte(os.Getenv("JWT_KEY"))

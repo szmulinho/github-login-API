@@ -74,10 +74,10 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	githubUser := model.GithubUser{
-		ID:    user.GetID(),
-		Name:  user.GetName(),
-		Email: user.GetEmail(),
-		Role:  role,
+		GithubUserID: user.GetID(),
+		Name:         user.GetName(),
+		Email:        user.GetEmail(),
+		Role:         role,
 	}
 
 	jsonResponse, err := json.Marshal(githubUser)
