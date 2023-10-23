@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (h *handlers) saveUserToDatabase(user *github.User, role string, db gorm.DB) error {
+func (h *handlers) SaveUserToDatabase(user *github.User, role string, db gorm.DB) error {
 	var existingUser model.GithubUser
 	db.Where("github_user_id = ?", user.GetID()).First(&existingUser)
 
