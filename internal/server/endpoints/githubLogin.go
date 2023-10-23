@@ -88,6 +88,11 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		Role:         role,
 	}
 
+	if err := h.SaveGithubUser(githubUser, h.db); err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	jsonResponse, err := json.Marshal(githubUser)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
