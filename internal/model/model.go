@@ -5,7 +5,7 @@ import (
 )
 
 type GithubUser struct {
-	GithubUserID int64  `json:"id"`
+	GithubUserID int64  `gorm:"unique_index"`
 	Name         string `json:"name"`
 	Email        string `json:"email"`
 	Role         string `json:"role"`

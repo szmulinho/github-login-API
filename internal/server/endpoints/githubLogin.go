@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/szmulinho/github-login/internal/model"
 	"golang.org/x/oauth2"
+	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -21,6 +22,13 @@ var (
 		},
 	}
 )
+
+func (h *handlers) SaveGithubUser(user model.GithubUser, db *gorm.DB) error {
+	if err := db.Create(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}
 
 func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, oauthConfig.AuthCodeURL("", oauth2.AccessTypeOffline), http.StatusFound)
