@@ -7,7 +7,6 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/szmulinho/github-login/internal/model"
 	"golang.org/x/oauth2"
-	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -23,8 +22,8 @@ var (
 	}
 )
 
-func (h *handlers) SaveGithubUser(user model.GithubUser, db *gorm.DB) error {
-	if err := db.Create(&user).Error; err != nil {
+func (h *handlers) SaveGithubUser(user model.GithubUser) error {
+	if err := h.db.Create(&user).Error; err != nil {
 		return err
 	}
 	return nil
@@ -88,7 +87,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		Role:         role,
 	}
 
-	if err := h.SaveGithubUser(githubUser, h.db); err != nil {
+	if err := h.SaveGithubUser(githubUser); err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
