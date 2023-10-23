@@ -15,7 +15,7 @@ func Run(ctx context.Context, db *gorm.DB) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	router.HandleFunc("/github", handler.HandleLogin).Methods("GET")
-	router.HandleFunc("/callback", handler.HandleCallback).Methods("GET")
+	router.HandleFunc("/callback", handler.HandleCallback).Methods("POST")
 	cors := handlers.CORS(
 		handlers.AllowedOrigins([]string{"*"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),
