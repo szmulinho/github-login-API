@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/google/go-github/github"
 	"github.com/szmulinho/github-login/internal/model"
 	"golang.org/x/oauth2"
+	"io"
 	"net/http"
 )
 
@@ -14,7 +14,8 @@ var (
 	oauthConfig = oauth2.Config{
 		ClientID:     "065d047663d40d183c04",
 		ClientSecret: "7b7c2239b98e0b66d53e6b2adbfd8722561512f4",
-		Scopes:       []string{"user", "repo"},
+		RedirectURL:  "http://localhost:8086/callback",
+		Scopes:       []string{"user:email", "repo"},
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  "https://github.com/login/oauth/authorize",
 			TokenURL: "https://github.com/login/oauth/access_token",
@@ -22,82 +23,44 @@ var (
 	}
 )
 
-func (h *handlers) SaveGithubUser(user model.GithubUser) error {
-	if err := h.db.Create(&user).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
 func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, oauthConfig.AuthCodeURL("", oauth2.AccessTypeOffline), http.StatusFound)
 }
 
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
 	code := r.URL.Query().Get("code")
-	token, err := oauthConfig.Exchange(ctx, code)
+	token, err := oauthConfig.Exchange(context.Background(), code)
 	if err != nil {
-		// Handle error
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	client := github.NewClient(oauthConfig.Client(ctx, token))
+	githubUser := h.GetUserInfoFromGitHub(token.AccessToken)
+	h.db.Create(&githubUser)
 
-	// Get user info
-	user, _, err := client.Users.Get(ctx, "")
+	http.Redirect(w, r, "/success", http.StatusFound)
+}
+
+func (h *handlers) GetUserInfoFromGitHub(accessToken string) model.GithubUser {
+	client := oauthConfig.Client(context.Background(), &oauth2.Token{AccessToken: accessToken})
+	resp, err := client.Get("https://api.github.com/user")
 	if err != nil {
-		// Handle error
-		return
+		fmt.Println("Error getting user info from GitHub:", err)
+		return model.GithubUser{} // Obsłuż błąd i zwróć odpowiednią wartość
 	}
-
-	fmt.Println("User's Name:", user.GetName())
-
-	repos, _, err := client.Repositories.List(ctx, "", &github.RepositoryListOptions{})
-	if err != nil {
-		// Handle error
-		return
-	}
-
-	desiredRepos := []string{"szmulinho/szmul-med", "szmulinho/drugstore", "szmulinho/prescription"}
-
-	var isAdmin bool
-	for _, repo := range repos {
-		for _, desiredRepo := range desiredRepos {
-			if repo.GetFullName() == desiredRepo {
-				isAdmin = true
-				break
-			}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			return
 		}
-		if isAdmin {
-			break
-		}
-	}
-	var role string
-	if isAdmin {
-		role = "admin"
-	} else {
-		role = "user"
-	}
+	}(resp.Body)
 
-	githubUser := model.GithubUser{
-		GithubUserID: user.GetID(),
-		Name:         user.GetName(),
-		Email:        user.GetEmail(),
-		Role:         role,
-	}
-
-	if err := h.SaveGithubUser(githubUser); err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	jsonResponse, err := json.Marshal(githubUser)
+	var githubUser model.GithubUser
+	err = json.NewDecoder(resp.Body).Decode(&githubUser)
 	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+		fmt.Println("Error decoding user info:", err)
+		return model.GithubUser{} // Obsłuż błąd i zwróć odpowiednią wartość
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResponse)
+	return githubUser
 }
