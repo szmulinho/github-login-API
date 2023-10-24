@@ -7,6 +7,7 @@ import (
 	"github.com/szmulinho/github-login/internal/model"
 	"golang.org/x/oauth2"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -32,10 +33,14 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	token, err := oauthConfig.Exchange(context.Background(), code)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println("Error exchanging code for token:", err)
 		return
 	}
 
+	log.Println("Access Token:", token.AccessToken)
+
 	githubUser := h.GetUserInfoFromGitHub(token.AccessToken)
+	log.Println("GitHub User Info:", githubUser)
 	h.db.Create(&githubUser)
 
 	http.Redirect(w, r, "/success", http.StatusFound)
