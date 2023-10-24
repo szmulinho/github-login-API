@@ -7,8 +7,7 @@ import (
 
 type Handlers interface {
 	HandleLogin(w http.ResponseWriter, r *http.Request)
-	LoggedinHandler(w http.ResponseWriter, r *http.Request, githubData string)
-	GithubCallbackHandler(w http.ResponseWriter, r *http.Request)
+	HandleCallback(w http.ResponseWriter, r *http.Request)
 }
 
 type handlers struct {
