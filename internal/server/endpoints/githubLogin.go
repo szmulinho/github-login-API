@@ -28,9 +28,9 @@ func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, oauthConfig.AuthCodeURL("", oauth2.AccessTypeOffline), http.StatusFound)
 }
 
-func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
+func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request, ctx context.Context) {
 	code := r.URL.Query().Get("code")
-	token, err := oauthConfig.Exchange(context.Background(), code)
+	token, err := oauthConfig.Exchange(ctx, code)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Println("Error exchanging code for token:", err)
@@ -39,15 +39,15 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Access Token:", token.AccessToken)
 
-	githubUser := h.GetUserInfoFromGitHub(token.AccessToken)
+	githubUser := h.GetUserInfoFromGitHub(ctx, token.AccessToken)
 	log.Println("GitHub User Info:", githubUser)
 	h.db.Create(&githubUser)
 
 	http.Redirect(w, r, "/success", http.StatusFound)
 }
 
-func (h *handlers) GetUserInfoFromGitHub(accessToken string) model.GithubUser {
-	client := oauthConfig.Client(context.Background(), &oauth2.Token{AccessToken: accessToken})
+func (h *handlers) GetUserInfoFromGitHub(ctx context.Context, accessToken string) model.GithubUser {
+	client := oauthConfig.Client(ctx, &oauth2.Token{AccessToken: accessToken})
 	resp, err := client.Get("https://api.github.com/user")
 	if err != nil {
 		fmt.Println("Error getting user info from GitHub:", err)
