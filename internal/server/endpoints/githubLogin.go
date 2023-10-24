@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/szmulinho/github-login/internal/model"
 	"golang.org/x/oauth2"
-	"io"
 	"log"
 	"net/http"
 )
@@ -28,9 +27,9 @@ func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, oauthConfig.AuthCodeURL("", oauth2.AccessTypeOffline), http.StatusFound)
 }
 
-func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request, ctx context.Context) {
+func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
-	token, err := oauthConfig.Exchange(ctx, code)
+	token, err := oauthConfig.Exchange(context.Background(), code)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Println("Error exchanging code for token:", err)
@@ -41,9 +40,13 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request, ctx co
 
 	githubUser := h.GetUserInfoFromGitHub(token.AccessToken)
 	log.Println("GitHub User Info:", githubUser)
-	h.db.Create(&githubUser)
 
-	http.Redirect(w, r, "/success", http.StatusFound)
+	if err := h.db.Create(&githubUser).Error; err != nil {
+		log.Println("Error saving user to database:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 }
 
 func (h *handlers) GetUserInfoFromGitHub(accessToken string) model.GithubUser {
@@ -53,12 +56,10 @@ func (h *handlers) GetUserInfoFromGitHub(accessToken string) model.GithubUser {
 		fmt.Println("Error getting user info from GitHub:", err)
 		return model.GithubUser{} // Obsłuż błąd i zwróć odpowiednią wartość
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			return
-		}
-	}(resp.Body)
+	defer resp.Body.Close()
+
+	// Dodaj logi dla odpowiedzi od GitHub API
+	fmt.Println("GitHub API Response:", resp.Status)
 
 	var githubUser model.GithubUser
 	err = json.NewDecoder(resp.Body).Decode(&githubUser)
