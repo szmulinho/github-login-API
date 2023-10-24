@@ -17,7 +17,7 @@ var (
 	oauthConfig = oauth2.Config{
 		ClientID:     "065d047663d40d183c04",
 		ClientSecret: "7b7c2239b98e0b66d53e6b2adbfd8722561512f4",
-		RedirectURL:  "https://szmul-med.onrender.com/github_user",
+		RedirectURL:  "https://szmul-med.onrender.com/callback",
 		Scopes:       []string{"user:email", "repo"},
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  "https://github.com/login/oauth/authorize",
