@@ -9,7 +9,7 @@ import (
 type Handlers interface {
 	HandleLogin(w http.ResponseWriter, r *http.Request)
 	HandleCallback(w http.ResponseWriter, r *http.Request)
-	SaveGithubUser(user model.GithubUser) error
+	GetUserInfoFromGitHub(accessToken string) model.GithubUser
 }
 
 type handlers struct {
