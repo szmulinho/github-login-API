@@ -1,15 +1,14 @@
 package endpoints
 
 import (
-	"github.com/szmulinho/github-login/internal/model"
 	"gorm.io/gorm"
 	"net/http"
 )
 
 type Handlers interface {
 	HandleLogin(w http.ResponseWriter, r *http.Request)
-	HandleCallback(w http.ResponseWriter, r *http.Request)
-	GetUserInfoFromGitHub(accessToken string) model.GithubUser
+	LoggedinHandler(w http.ResponseWriter, r *http.Request, githubData string)
+	GithubCallbackHandler(w http.ResponseWriter, r *http.Request)
 }
 
 type handlers struct {
