@@ -38,7 +38,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Access Token:", token.AccessToken)
 
-	githubUser := h.GetUserInfoFromGitHub(token.AccessToken)
+	githubUser := getUserInfoFromGitHub(token.AccessToken)
 	log.Println("GitHub User Info:", githubUser)
 
 	if err := h.db.Create(&githubUser).Error; err != nil {
@@ -49,7 +49,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *handlers) GetUserInfoFromGitHub(accessToken string) model.GithubUser {
+func getUserInfoFromGitHub(accessToken string) model.GithubUser {
 	client := oauthConfig.Client(context.Background(), &oauth2.Token{AccessToken: accessToken})
 	resp, err := client.Get("https://api.github.com/user")
 	if err != nil {
