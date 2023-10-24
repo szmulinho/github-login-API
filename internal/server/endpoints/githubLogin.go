@@ -39,15 +39,15 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request, ctx co
 
 	log.Println("Access Token:", token.AccessToken)
 
-	githubUser := h.GetUserInfoFromGitHub(ctx, token.AccessToken)
+	githubUser := h.GetUserInfoFromGitHub(token.AccessToken)
 	log.Println("GitHub User Info:", githubUser)
 	h.db.Create(&githubUser)
 
 	http.Redirect(w, r, "/success", http.StatusFound)
 }
 
-func (h *handlers) GetUserInfoFromGitHub(ctx context.Context, accessToken string) model.GithubUser {
-	client := oauthConfig.Client(ctx, &oauth2.Token{AccessToken: accessToken})
+func (h *handlers) GetUserInfoFromGitHub(accessToken string) model.GithubUser {
+	client := oauthConfig.Client(context.Background(), &oauth2.Token{AccessToken: accessToken})
 	resp, err := client.Get("https://api.github.com/user")
 	if err != nil {
 		fmt.Println("Error getting user info from GitHub:", err)
