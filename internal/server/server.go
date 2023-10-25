@@ -13,9 +13,13 @@ import (
 func Run(ctx context.Context, db *gorm.DB) {
 	handler := endpoints.NewHandler(db)
 	router := mux.NewRouter().StrictSlash(true)
-	router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	router.HandleFunc("/github", handler.HandleLogin).Methods("GET")
-	router.HandleFunc("/callback", handler.HandleCallback).Methods("GET")
+
+	http.HandleFunc("/", endpoints.RootHandler)
+	http.HandleFunc("/login/github/", handler.GithubLoginHandler)
+	http.HandleFunc("/login/github/callback", handler.GithubCallbackHandler)
+	http.HandleFunc("/logged", func(w http.ResponseWriter, r *http.Request) {
+		endpoints.LoggedHandler(w, r, "")
+	})
 	cors := handlers.CORS(
 		handlers.AllowedOrigins([]string{"*"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),
