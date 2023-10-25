@@ -1,12 +1,12 @@
 package endpoints
 
 import (
-	"context"
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/google/go-github/github"
-	"github.com/szmulinho/github-login/internal/model"
 	"golang.org/x/oauth2"
+	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -22,70 +22,66 @@ var (
 	}
 )
 
+func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
+	if githubData == "" {
+		fmt.Fprintf(w, "UNAUTHORIZED!")
+		return
+	}
+
+	w.Header().Set("Content-type", "application/json")
+
+	var prettyJSON bytes.Buffer
+	parserr := json.Indent(&prettyJSON, []byte(githubData), "", "\t")
+	if parserr != nil {
+		log.Panic("JSON parse error")
+	}
+
+	fmt.Fprintf(w, string(prettyJSON.Bytes()))
+}
+
+func (h *handlers) RootHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, `<a href="/login/github/">LOGIN</a>`)
+}
+
 func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, oauthConfig.AuthCodeURL("", oauth2.AccessTypeOffline), http.StatusFound)
+	redirectURL := oauthConfig.AuthCodeURL("", oauth2.AccessTypeOffline)
+
+	http.Redirect(w, r, redirectURL, 301)
 }
 
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
 	code := r.URL.Query().Get("code")
-	token, err := oauthConfig.Exchange(ctx, code)
+
+	token, err := oauthConfig.Exchange(r.Context(), code)
 	if err != nil {
-		// Handle error
-		return
+		log.Fatal("OAuth exchange failed:", err)
 	}
 
-	client := github.NewClient(oauthConfig.Client(ctx, token))
+	githubData := getGithubData(token.AccessToken)
 
-	// Get user info
-	user, _, err := client.Users.Get(ctx, "")
-	if err != nil {
-		// Handle error
-		return
+	LoggedHandler(w, r, githubData)
+}
+
+func getGithubData(accessToken string) string {
+	// Get request to a set URL
+	req, reqerr := http.NewRequest(
+		"GET",
+		"https://api.github.com/user",
+		nil,
+	)
+	if reqerr != nil {
+		log.Panic("API Request creation failed")
 	}
 
-	fmt.Println("User's Name:", user.GetName())
+	authorizationHeaderValue := fmt.Sprintf("token %s", accessToken)
+	req.Header.Set("Authorization", authorizationHeaderValue)
 
-	repos, _, err := client.Repositories.List(ctx, "", &github.RepositoryListOptions{})
-	if err != nil {
-		// Handle error
-		return
+	resp, resperr := http.DefaultClient.Do(req)
+	if resperr != nil {
+		log.Panic("Request failed")
 	}
 
-	desiredRepos := []string{"szmulinho/szmul-med", "szmulinho/drugstore", "szmulinho/prescription"}
+	respbody, _ := ioutil.ReadAll(resp.Body)
 
-	var isAdmin bool
-	for _, repo := range repos {
-		for _, desiredRepo := range desiredRepos {
-			if repo.GetFullName() == desiredRepo {
-				isAdmin = true
-				break
-			}
-		}
-		if isAdmin {
-			break
-		}
-	}
-	var role string
-	if isAdmin {
-		role = "admin"
-	} else {
-		role = "user"
-	}
-
-	githubUser := model.GithubUser{
-		ID:       user.GetID(),
-		Username: user.GetName(),
-		Email:    user.GetEmail(),
-		Role:     role,
-	}
-
-	jsonResponse, err := json.Marshal(githubUser)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResponse)
+	return string(respbody)
 }
