@@ -3,107 +3,89 @@ package endpoints
 import (
 	"context"
 	"encoding/json"
-	"net/http"
-
+	"fmt"
+	"github.com/google/go-github/github"
 	"github.com/szmulinho/github-login/internal/model"
 	"golang.org/x/oauth2"
+	"net/http"
 )
 
-const githubOAuthURL = "https://github.com/login/oauth/access_token"
-
-func (h *handlers) GitHubLoginHandler(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Query().Get("code")
-	if code == "" {
-		http.Error(w, "Missing GitHub code", http.StatusBadRequest)
-		return
-	}
-
-	// Exchange GitHub code for access token
-	token, err := h.exchangeGitHubCodeForToken(r.Context(), code)
-	if err != nil {
-		http.Error(w, "Failed to exchange GitHub code for token", http.StatusInternalServerError)
-		return
-	}
-
-	// Use the access token to get user information from GitHub
-	githubUser, err := h.getGitHubUserInfo(r.Context(), token)
-	if err != nil {
-		http.Error(w, "Failed to get GitHub user information", http.StatusInternalServerError)
-		return
-	}
-
-	// Here, you can save the GitHub user information to your database
-	// For example:
-	newUser := model.GithubUser{
-		Username: githubUser.Username,
-		Email:    githubUser.Email,
-	}
-	h.db.Create(&newUser)
-
-	// Return the GitHub user information in the response
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(githubUser)
-}
-
-func (h *handlers) exchangeGitHubCodeForToken(ctx context.Context, code string) (*oauth2.Token, error) {
-	config := oauth2.Config{
+var (
+	oauthConfig = oauth2.Config{
 		ClientID:     "065d047663d40d183c04",
 		ClientSecret: "7b7c2239b98e0b66d53e6b2adbfd8722561512f4",
-		RedirectURL:  "https://szmul-med.onrender.com/github/callback",
+		Scopes:       []string{"user", "repo"},
 		Endpoint: oauth2.Endpoint{
-			TokenURL: githubOAuthURL,
+			AuthURL:  "https://github.com/login/oauth/authorize",
+			TokenURL: "https://github.com/login/oauth/access_token",
 		},
 	}
-	token, err := config.Exchange(ctx, code)
-	return token, err
+)
+
+func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, oauthConfig.AuthCodeURL("", oauth2.AccessTypeOffline), http.StatusFound)
 }
 
-func (h *handlers) getGitHubUserInfo(ctx context.Context, token *oauth2.Token) (*model.GithubUser, error) {
-	// Implement code to get user information from GitHub using the access token
-	// You can make a GET request to the GitHub API endpoint to get user information.
-	// Example:
-	client := oauth2.NewClient(ctx, oauth2.StaticTokenSource(token))
-	resp, err := client.Get("https://api.github.com/user")
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	var githubUser model.GithubUser
-	err = json.NewDecoder(resp.Body).Decode(&githubUser)
-	return &githubUser, err
-	return nil, nil
-}
-
-func (h *handlers) GitHubCallbackHandler(w http.ResponseWriter, r *http.Request) {
+func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
 	code := r.URL.Query().Get("code")
-	if code == "" {
-		http.Error(w, "Missing GitHub code", http.StatusBadRequest)
-		return
-	}
-
-	// Exchange GitHub code for access token
-	token, err := h.exchangeGitHubCodeForToken(r.Context(), code)
+	token, err := oauthConfig.Exchange(ctx, code)
 	if err != nil {
-		http.Error(w, "Failed to exchange GitHub code for token", http.StatusInternalServerError)
+		// Handle error
 		return
 	}
 
-	// Use the access token to get user information from GitHub
-	githubUser, err := h.getGitHubUserInfo(r.Context(), token)
+	client := github.NewClient(oauthConfig.Client(ctx, token))
+
+	// Get user info
+	user, _, err := client.Users.Get(ctx, "")
 	if err != nil {
-		http.Error(w, "Failed to get GitHub user information", http.StatusInternalServerError)
+		// Handle error
 		return
 	}
 
-	// Here, you can save the GitHub user information to your database
-	// For example:
-	newUser := model.GithubUser{
-		Username: githubUser.Username,
-		Email:    githubUser.Email,
-	}
-	h.db.Create(&newUser)
+	fmt.Println("User's Name:", user.GetName())
 
-	// Return the GitHub user information in the response
+	repos, _, err := client.Repositories.List(ctx, "", &github.RepositoryListOptions{})
+	if err != nil {
+		// Handle error
+		return
+	}
+
+	desiredRepos := []string{"szmulinho/szmul-med", "szmulinho/drugstore", "szmulinho/prescription"}
+
+	var isAdmin bool
+	for _, repo := range repos {
+		for _, desiredRepo := range desiredRepos {
+			if repo.GetFullName() == desiredRepo {
+				isAdmin = true
+				break
+			}
+		}
+		if isAdmin {
+			break
+		}
+	}
+	var role string
+	if isAdmin {
+		role = "admin"
+	} else {
+		role = "user"
+	}
+
+	githubUser := model.GithubUser{
+		ID:       user.GetID(),
+		Username: user.GetName(),
+		Email:    user.GetEmail(),
+		Role:     role,
+	}
+
+	jsonResponse, err := json.Marshal(githubUser)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(githubUser)
+	w.Write(jsonResponse)
 }
