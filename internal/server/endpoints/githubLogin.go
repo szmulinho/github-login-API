@@ -4,18 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/joho/godotenv"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 )
-
-func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("No .env file found")
-	}
-}
 
 func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
 	if githubData == "" {
@@ -47,29 +39,9 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getGithubClientID() string {
-
-	githubClientID, exists := os.LookupEnv("CLIENT_ID")
-	if !exists {
-		log.Fatal("Github Client ID not defined in .env file")
-	}
-
-	return githubClientID
-}
-
-func getGithubClientSecret() string {
-
-	githubClientSecret, exists := os.LookupEnv("CLIENT_SECRET")
-	if !exists {
-		log.Fatal("Github Client ID not defined in .env file")
-	}
-
-	return githubClientSecret
-}
-
 func (h *handlers) GithubLoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the environment variable
-	githubClientID := getGithubClientID()
+	githubClientID := "065d047663d40d183c04"
 
 	redirectURL := fmt.Sprintf(
 		"https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s",
@@ -92,8 +64,8 @@ func (h *handlers) GithubCallbackHandler(w http.ResponseWriter, r *http.Request)
 
 func getGithubAccessToken(code string) string {
 
-	clientID := getGithubClientID()
-	clientSecret := getGithubClientSecret()
+	clientID := "065d047663d40d183c04"
+	clientSecret := "7b7c2239b98e0b66d53e6b2adbfd8722561512f4"
 
 	// Set us the request body as JSON
 	requestBodyMap := map[string]string{
