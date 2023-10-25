@@ -46,9 +46,6 @@ func (h *handlers) GitHubLoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handlers) exchangeGitHubCodeForToken(ctx context.Context, code string) (*oauth2.Token, error) {
-	// Implement code to exchange GitHub code for access token using OAuth2
-	// You can use the golang.org/x/oauth2 package for this purpose.
-	// Example:
 	config := oauth2.Config{
 		ClientID:     "065d047663d40d183c04",
 		ClientSecret: "7b7c2239b98e0b66d53e6b2adbfd8722561512f4",
@@ -59,7 +56,6 @@ func (h *handlers) exchangeGitHubCodeForToken(ctx context.Context, code string) 
 	}
 	token, err := config.Exchange(ctx, code)
 	return token, err
-	return nil, nil
 }
 
 func (h *handlers) getGitHubUserInfo(ctx context.Context, token *oauth2.Token) (*model.GithubUser, error) {
