@@ -52,7 +52,7 @@ func (h *handlers) exchangeGitHubCodeForToken(ctx context.Context, code string) 
 	config := oauth2.Config{
 		ClientID:     "065d047663d40d183c04",
 		ClientSecret: "7b7c2239b98e0b66d53e6b2adbfd8722561512f4",
-		RedirectURL:  "your-redirect-url",
+		RedirectURL:  "https://szmul-med.onrender.com/github/callback",
 		Endpoint: oauth2.Endpoint{
 			TokenURL: githubOAuthURL,
 		},
