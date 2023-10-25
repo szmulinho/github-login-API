@@ -1,138 +1,79 @@
 package endpoints
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
+
+	"github.com/szmulinho/github-login/internal/model"
+	"golang.org/x/oauth2"
 )
 
-func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
-	if githubData == "" {
-		_, err := fmt.Fprintf(w, "UNAUTHORIZED!")
-		if err != nil {
-			return
-		}
-		return
-	}
+const githubOAuthURL = "https://github.com/login/oauth/access_token"
 
-	w.Header().Set("Content-type", "application/json")
-
-	var prettyJSON bytes.Buffer
-	parser := json.Indent(&prettyJSON, []byte(githubData), "", "\t")
-	if parser != nil {
-		log.Panic("JSON parse error")
-	}
-
-	_, err := fmt.Fprintf(w, string(prettyJSON.Bytes()))
-	if err != nil {
-		return
-	}
-}
-
-func RootHandler(w http.ResponseWriter, r *http.Request) {
-	_, err := fmt.Fprintf(w, `<a href="/login/github/">LOGIN</a>`)
-	if err != nil {
-		return
-	}
-}
-
-func (h *handlers) GithubLoginHandler(w http.ResponseWriter, r *http.Request) {
-	// Get the environment variable
-	githubClientID := "065d047663d40d183c04"
-
-	redirectURL := fmt.Sprintf(
-		"https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s",
-		githubClientID,
-		"https://szmul-med-github-login.onrender.com/login/github/callback",
-	)
-
-	http.Redirect(w, r, redirectURL, 301)
-}
-
-func (h *handlers) GithubCallbackHandler(w http.ResponseWriter, r *http.Request) {
+func (h *handlers) GitHubLoginHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
+	if code == "" {
+		http.Error(w, "Missing GitHub code", http.StatusBadRequest)
+		return
+	}
 
-	githubAccessToken := getGithubAccessToken(code)
+	// Exchange GitHub code for access token
+	token, err := h.exchangeGitHubCodeForToken(r.Context(), code)
+	if err != nil {
+		http.Error(w, "Failed to exchange GitHub code for token", http.StatusInternalServerError)
+		return
+	}
 
-	githubData := getGithubData(githubAccessToken)
+	// Use the access token to get user information from GitHub
+	githubUser, err := h.getGitHubUserInfo(r.Context(), token)
+	if err != nil {
+		http.Error(w, "Failed to get GitHub user information", http.StatusInternalServerError)
+		return
+	}
 
-	LoggedHandler(w, r, githubData)
+	// Here, you can save the GitHub user information to your database
+	// For example:
+	newUser := model.GithubUser{
+		Username: githubUser.Username,
+		Email:    githubUser.Email,
+	}
+	h.db.Create(&newUser)
+
+	// Return the GitHub user information in the response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(githubUser)
 }
 
-func getGithubAccessToken(code string) string {
-
-	clientID := "065d047663d40d183c04"
-	clientSecret := "7b7c2239b98e0b66d53e6b2adbfd8722561512f4"
-
-	// Set us the request body as JSON
-	requestBodyMap := map[string]string{
-		"client_id":     clientID,
-		"client_secret": clientSecret,
-		"code":          code,
+func (h *handlers) exchangeGitHubCodeForToken(ctx context.Context, code string) (*oauth2.Token, error) {
+	// Implement code to exchange GitHub code for access token using OAuth2
+	// You can use the golang.org/x/oauth2 package for this purpose.
+	// Example:
+	config := oauth2.Config{
+		ClientID:     "065d047663d40d183c04",
+		ClientSecret: "7b7c2239b98e0b66d53e6b2adbfd8722561512f4",
+		RedirectURL:  "your-redirect-url",
+		Endpoint: oauth2.Endpoint{
+			TokenURL: githubOAuthURL,
+		},
 	}
-	requestJSON, _ := json.Marshal(requestBodyMap)
-
-	// POST request to set URL
-	req, reqerr := http.NewRequest(
-		"POST",
-		"https://github.com/login/oauth/access_token",
-		bytes.NewBuffer(requestJSON),
-	)
-	if reqerr != nil {
-		log.Panic("Request creation failed")
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-
-	// Get the response
-	resp, resperr := http.DefaultClient.Do(req)
-	if resperr != nil {
-		log.Panic("Request failed")
-	}
-
-	respbody, _ := ioutil.ReadAll(resp.Body)
-
-	type githubAccessTokenResponse struct {
-		AccessToken string `json:"access_token"`
-		TokenType   string `json:"token_type"`
-		Scope       string `json:"scope"`
-	}
-
-	var ghresp githubAccessTokenResponse
-	err := json.Unmarshal(respbody, &ghresp)
-	if err != nil {
-		return ""
-	}
-
-	return ghresp.AccessToken
+	token, err := config.Exchange(ctx, code)
+	return token, err
+	return nil, nil
 }
 
-func getGithubData(accessToken string) string {
-	// Get request to a set URL
-	req, err := http.NewRequest(
-		"GET",
-		"https://api.github.com/user",
-		nil,
-	)
+func (h *handlers) getGitHubUserInfo(ctx context.Context, token *oauth2.Token) (*model.GithubUser, error) {
+	// Implement code to get user information from GitHub using the access token
+	// You can make a GET request to the GitHub API endpoint to get user information.
+	// Example:
+	client := oauth2.NewClient(ctx, oauth2.StaticTokenSource(token))
+	resp, err := client.Get("https://api.github.com/user")
 	if err != nil {
-		log.Panic("API Request creation failed")
+		return nil, err
 	}
-
-	authorizationHeaderValue := fmt.Sprintf("token %s", accessToken)
-	req.Header.Set("Authorization", authorizationHeaderValue)
-
-	// Make the request
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Panic("Request failed")
-	}
-
-	// Read the response as a byte slice
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	// Convert byte slice to string and return
-	return string(body)
+	defer resp.Body.Close()
+	var githubUser model.GithubUser
+	err = json.NewDecoder(resp.Body).Decode(&githubUser)
+	return &githubUser, err
+	return nil, nil
 }

@@ -60,8 +60,6 @@ golang.org/x/net/context
 # golang.org/x/oauth2 v0.13.0
 ## explicit; go 1.18
 golang.org/x/oauth2
-golang.org/x/oauth2/endpoints
-golang.org/x/oauth2/github
 golang.org/x/oauth2/internal
 # golang.org/x/text v0.13.0
 ## explicit; go 1.17

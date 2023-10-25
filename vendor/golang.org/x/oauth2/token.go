@@ -59,6 +59,11 @@ type Token struct {
 	expiryDelta time.Duration
 }
 
+func (t *Token) Token() (*Token, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 // Type returns t.TokenType if non-empty, else "Bearer".
 func (t *Token) Type() string {
 	if strings.EqualFold(t.TokenType, "bearer") {
