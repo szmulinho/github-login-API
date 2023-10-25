@@ -12,6 +12,7 @@ type Handlers interface {
 	exchangeGitHubCodeForToken(ctx context.Context, code string) (*oauth2.Token, error)
 	getGitHubUserInfo(ctx context.Context, token *oauth2.Token) (*model.GithubUser, error)
 	GitHubLoginHandler(w http.ResponseWriter, r *http.Request)
+	GitHubCallbackHandler(w http.ResponseWriter, r *http.Request)
 }
 
 type handlers struct {

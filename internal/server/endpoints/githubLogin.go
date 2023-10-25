@@ -77,3 +77,37 @@ func (h *handlers) getGitHubUserInfo(ctx context.Context, token *oauth2.Token) (
 	return &githubUser, err
 	return nil, nil
 }
+
+func (h *handlers) GitHubCallbackHandler(w http.ResponseWriter, r *http.Request) {
+	code := r.URL.Query().Get("code")
+	if code == "" {
+		http.Error(w, "Missing GitHub code", http.StatusBadRequest)
+		return
+	}
+
+	// Exchange GitHub code for access token
+	token, err := h.exchangeGitHubCodeForToken(r.Context(), code)
+	if err != nil {
+		http.Error(w, "Failed to exchange GitHub code for token", http.StatusInternalServerError)
+		return
+	}
+
+	// Use the access token to get user information from GitHub
+	githubUser, err := h.getGitHubUserInfo(r.Context(), token)
+	if err != nil {
+		http.Error(w, "Failed to get GitHub user information", http.StatusInternalServerError)
+		return
+	}
+
+	// Here, you can save the GitHub user information to your database
+	// For example:
+	newUser := model.GithubUser{
+		Username: githubUser.Username,
+		Email:    githubUser.Email,
+	}
+	h.db.Create(&newUser)
+
+	// Return the GitHub user information in the response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(githubUser)
+}
