@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/golang-jwt/jwt"
 	"golang.org/x/oauth2"
 	"io/ioutil"
 	"log"
@@ -23,6 +24,37 @@ var (
 )
 
 func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
+
+	cookie, err := r.Cookie("jwt")
+	if err != nil {
+		fmt.Fprintf(w, "UNAUTHORIZED!")
+		return
+	}
+
+	token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+		return []byte("tajny_klucz_do_podpisu_tokena"), nil
+	})
+
+	if err != nil || !token.Valid {
+		fmt.Fprintf(w, "UNAUTHORIZED!")
+		return
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		fmt.Fprintf(w, "Błąd parsowania danych użytkownika!")
+		return
+	}
+
+	username, usernameExists := claims["username"].(string)
+	email, emailExists := claims["email"].(string)
+
+	if !usernameExists || !emailExists {
+		fmt.Fprintf(w, "Brak danych użytkownika w tokenie!")
+		return
+	}
+	fmt.Fprintf(w, "Zalogowany użytkownik: %s, Email: %s", username, email)
+
 	if githubData == "" {
 		fmt.Fprintf(w, "UNAUTHORIZED!")
 		return
@@ -60,10 +92,23 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	githubData := getGithubData(token.AccessToken)
 
 	LoggedHandler(w, r, githubData)
+
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"token": token.AccessToken,
+	})
+
+	tokenString, err := jwtToken.SignedString([]byte("token"))
+	if err != nil {
+		log.Fatal("Błąd podpisywania tokena JWT:", err)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:  "jwt",
+		Value: tokenString,
+	})
 }
 
 func getGithubData(accessToken string) string {
-	// Get request to a set URL
 	req, reqerr := http.NewRequest(
 		"GET",
 		"https://api.github.com/user",

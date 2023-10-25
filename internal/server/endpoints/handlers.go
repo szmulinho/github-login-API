@@ -9,6 +9,7 @@ type Handlers interface {
 	HandleLogin(w http.ResponseWriter, r *http.Request)
 	HandleCallback(w http.ResponseWriter, r *http.Request)
 	RootHandler(w http.ResponseWriter, r *http.Request)
+	CreateToken(userID string) (string, error)
 }
 
 type handlers struct {
