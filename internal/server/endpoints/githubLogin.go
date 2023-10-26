@@ -24,20 +24,7 @@ var (
 	}
 )
 
-func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string, isLogged bool) {
-	w.Header().Set("Content-type", "application/json")
-
-	if isLogged {
-		var prettyJSON bytes.Buffer
-		parserr := json.Indent(&prettyJSON, []byte(githubData), "", "\t")
-		if parserr != nil {
-			log.Panic("JSON parse error")
-		}
-		fmt.Fprintf(w, string(prettyJSON.Bytes()))
-	} else {
-		fmt.Fprintf(w, "UNAUTHORIZED!")
-	}
-
+func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
 	if githubData == "" {
 		fmt.Fprintf(w, "UNAUTHORIZED!")
 		return
@@ -92,7 +79,8 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	if err := h.db.Create(&user).Error; err != nil {
 		log.Panic("Failed to save user to database:", err)
 	}
-	LoggedHandler(w, r, githubData, true)
+
+	LoggedHandler(w, r, githubData)
 }
 
 func getGithubData(accessToken string) string {

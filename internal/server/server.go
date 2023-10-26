@@ -17,7 +17,7 @@ func Run(ctx context.Context, db *gorm.DB) {
 	router.HandleFunc("/github/login", handler.HandleLogin)
 	router.HandleFunc("/github/callback", handler.HandleCallback)
 	http.HandleFunc("/logged", func(w http.ResponseWriter, r *http.Request) {
-		endpoints.LoggedHandler(w, r, "", bool(true))
+		endpoints.LoggedHandler(w, r, "")
 	})
 	cors := handlers.CORS(
 		handlers.AllowedOrigins([]string{"*"}),
