@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/szmulinho/github-login/internal/model"
 	"golang.org/x/oauth2"
 	"io/ioutil"
 	"log"
@@ -59,6 +60,23 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	githubData := getGithubData(token.AccessToken)
+
+	var githubUser model.GithubUser
+	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
+		log.Panic("Error parsing GitHub data:", err)
+	}
+
+	user := model.GithubUser{
+		ID:          githubUser.ID,
+		Username:    githubUser.Username,
+		Email:       githubUser.Email,
+		Role:        githubUser.Role,
+		AccessToken: token.AccessToken,
+	}
+
+	if err := h.db.Create(&user).Error; err != nil {
+		log.Panic("Failed to save user to database:", err)
+	}
 
 	LoggedHandler(w, r, githubData)
 }
