@@ -19,16 +19,21 @@ func Run(ctx context.Context, db *gorm.DB) {
 	http.HandleFunc("/logged", func(w http.ResponseWriter, r *http.Request) {
 		endpoints.LoggedHandler(w, r, "")
 	})
+
+	// CORS middleware
 	cors := handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedOrigins([]string{"https://szmul-med.onrender.com"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"X-Requested-With", "Authorization", "Content-Type"}),
-		handlers.ExposedHeaders([]string{}),
 		handlers.AllowCredentials(),
 		handlers.MaxAge(86400),
 	)
+
+	// Wrap the router with the CORS middleware
+	corsRouter := cors(router)
+
 	go func() {
-		err := http.ListenAndServe(":8086", cors(router))
+		err := http.ListenAndServe(":8086", corsRouter)
 		if err != nil {
 			log.Fatal(err)
 		}
