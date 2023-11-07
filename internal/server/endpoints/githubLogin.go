@@ -81,11 +81,10 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		log.Panic("Failed to save user to database:", err)
 	}
 
-	newUser := model.User{
-		Login:    githubUser.Login,
-		Email:    githubUser.Email,
-		Password: "",
-		Role:     githubUser.Role,
+	newUser := model.GithubUser{
+		Login: githubUser.Login,
+		Email: githubUser.Email,
+		Role:  githubUser.Role,
 	}
 
 	userJSON, err := json.Marshal(newUser)
