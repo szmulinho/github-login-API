@@ -7,7 +7,6 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
-	github.com/joho/godotenv v1.5.1
 	github.com/szmulinho/common v0.0.0-20231013130355-af30704a82f7
 	golang.org/x/oauth2 v0.13.0
 	gorm.io/driver/postgres v1.5.3
