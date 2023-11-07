@@ -6,8 +6,9 @@ import (
 )
 
 type Handlers interface {
-	HandleGitHubLogin(w http.ResponseWriter, r *http.Request)
+	HandleLogin(w http.ResponseWriter, r *http.Request)
 	HandleCallback(w http.ResponseWriter, r *http.Request)
+	RootHandler(w http.ResponseWriter, r *http.Request)
 }
 
 type handlers struct {

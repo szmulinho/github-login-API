@@ -12,14 +12,21 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 )
 
 var (
-	clientID     = "33f5f8298ded51f76f30"
-	clientSecret = "1b7ab1c0faeac3b5b3619bfe610efc9514713f85"
-	redirectURI  = "https://szmul-med.onrender.com/github_user"
-	scopes       = []string{"public_repo", "read:user", "user:email", "user:follow"}
+	oauthConfig = oauth2.Config{
+		ClientID:     "33f5f8298ded51f76f30",
+		ClientSecret: os.Getenv("CLIENT_SECRET"),
+		Scopes:       []string{"public_repo", "read:user", "user:email", "user:follow"},
+		RedirectURL:  "https://szmul-med.onrender.com/github_user",
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://github.com/login/oauth/authorize",
+			TokenURL: "https://github.com/login/oauth/access_token",
+		},
+	}
 )
 
 func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
@@ -40,35 +47,17 @@ func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
 	fmt.Fprintf(w, string(prettyJSON.Bytes()))
 }
 
-func (h *handlers) HandleGitHubLogin(w http.ResponseWriter, r *http.Request) {
-	oauthConfig := oauth2.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		RedirectURL:  redirectURI,
-		Scopes:       scopes, // Specify the desired scopes here
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://github.com/login/oauth/authorize",
-			TokenURL: "https://github.com/login/oauth/access_token",
-		},
-	}
+func (h *handlers) RootHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, `<a href="/github/login/">LOGIN</a>`)
+}
 
-	url := oauthConfig.AuthCodeURL("", oauth2.AccessTypeOffline)
-	http.Redirect(w, r, url, http.StatusFound)
+func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
+	redirectURL := oauthConfig.AuthCodeURL("", oauth2.AccessTypeOffline)
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
-
-	oauthConfig := oauth2.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		RedirectURL:  redirectURI,
-		Scopes:       scopes,
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://github.com/login/oauth/authorize",
-			TokenURL: "https://github.com/login/oauth/access_token",
-		},
-	}
 
 	token, err := oauthConfig.Exchange(r.Context(), code)
 	if err != nil {
