@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/szmulinho/github-login/internal/model"
+	"github.com/szmulinho/common/model"
 	"golang.org/x/oauth2"
 	"io/ioutil"
 	"log"
@@ -80,6 +80,27 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	if err := h.db.Create(&user).Error; err != nil {
 		log.Panic("Failed to save user to database:", err)
 	}
+
+	newUser := model.User{
+		Login:    githubUser.Login,
+		Email:    githubUser.Email,
+		Password: "",
+		Role:     githubUser.Role,
+	}
+
+	userJSON, err := json.Marshal(newUser)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resp, err := http.Post("https://szmul-med-users.onrender.com/register", "application/json", bytes.NewBuffer(userJSON))
+	if err != nil {
+		log.Println("Failed to create user in user-api:", err)
+		http.Error(w, "Failed to create user in user-api", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
 
 	LoggedHandler(w, r, githubData)
 }

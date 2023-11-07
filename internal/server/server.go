@@ -22,7 +22,7 @@ func Run(ctx context.Context, db *gorm.DB) {
 
 	// CORS middleware
 	cors := handlers.CORS(
-		handlers.AllowedOrigins([]string{"https://szmul-med.onrender.com"}),
+		handlers.AllowedOrigins([]string{"https://szmul-med.onrender.com"}), // Replace with your React app's origin
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"X-Requested-With", "Authorization", "Content-Type"}),
 		handlers.AllowCredentials(),
