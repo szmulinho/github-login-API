@@ -20,7 +20,6 @@ func Run(ctx context.Context, db *gorm.DB) {
 		endpoints.LoggedHandler(w, r, "")
 	})
 
-	// CORS middleware
 	cors := handlers.CORS(
 		handlers.AllowedOrigins([]string{"https://szmul-med.onrender.com"}), // Replace with your React app's origin
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),
@@ -29,7 +28,6 @@ func Run(ctx context.Context, db *gorm.DB) {
 		handlers.MaxAge(86400),
 	)
 
-	// Wrap the router with the CORS middleware
 	corsRouter := cors(router)
 
 	go func() {
