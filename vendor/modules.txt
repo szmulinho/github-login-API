@@ -7,12 +7,6 @@ github.com/golang-jwt/jwt
 # github.com/golang/protobuf v1.5.3
 ## explicit; go 1.9
 github.com/golang/protobuf/proto
-# github.com/google/go-github v17.0.0+incompatible
-## explicit
-github.com/google/go-github/github
-# github.com/google/go-querystring v1.1.0
-## explicit; go 1.10
-github.com/google/go-querystring/query
 # github.com/gorilla/handlers v1.5.1
 ## explicit; go 1.14
 github.com/gorilla/handlers
@@ -50,6 +44,7 @@ github.com/jinzhu/now
 github.com/joho/godotenv
 # github.com/szmulinho/common v0.0.0-20231013130355-af30704a82f7
 ## explicit; go 1.21.1
+github.com/szmulinho/common/model
 github.com/szmulinho/common/utils
 # golang.org/x/crypto v0.14.0
 ## explicit; go 1.17
