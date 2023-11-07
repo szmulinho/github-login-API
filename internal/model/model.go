@@ -6,7 +6,7 @@ import (
 
 type GithubUser struct {
 	ID          int64  `gorm:"unique_index"`
-	Login       string `json:"username"`
+	Login       string `json:"login"`
 	AvatarUrl   string `json:"avatar_url"`
 	HtmlUrl     string `json:"html_url"`
 	Email       string `json:"email"`
