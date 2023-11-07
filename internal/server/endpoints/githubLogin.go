@@ -12,12 +12,13 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 )
 
 var oauthConfig = oauth2.Config{
-	ClientID:     "33f5f8298ded51f76f30",
-	ClientSecret: "1b7ab1c0faeac3b5b3619bfe610efc9514713f85",
+	ClientID:     os.Getenv("CLIENT_ID"),
+	ClientSecret: os.Getenv("CLIENT_SECRET"),
 	Scopes:       []string{"public_repo", "read:user", "user:email", "user:follow", "read:project", "read:packages"},
 	RedirectURL:  "https://szmul-med.onrender.com/github_user",
 	Endpoint: oauth2.Endpoint{
