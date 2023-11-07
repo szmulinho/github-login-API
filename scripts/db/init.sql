@@ -1,1 +1,1 @@
-CREATE DATABASE drugstore;
+CREATE DATABASE github-login;

@@ -16,9 +16,9 @@ import (
 )
 
 var oauthConfig = oauth2.Config{
-	ClientID:     "065d047663d40d183c04",
-	ClientSecret: "7b7c2239b98e0b66d53e6b2adbfd8722561512f4",
-	Scopes:       []string{"repo"},
+	ClientID:     "33f5f8298ded51f76f30",
+	ClientSecret: "097b8ba8ca57ff0e5fab68def2b706b5db67e207",
+	Scopes:       []string{"public_repo"},
 	RedirectURL:  "https://szmul-med.onrender.com/github_user",
 	Endpoint: oauth2.Endpoint{
 		AuthURL:  "https://github.com/login/oauth/authorize",
