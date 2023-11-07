@@ -16,9 +16,9 @@ import (
 )
 
 var (
-	clientID     = "YOUR_GITHUB_CLIENT_ID"
-	clientSecret = "YOUR_GITHUB_CLIENT_SECRET"
-	redirectURI  = "http://localhost:8080/callback"
+	clientID     = "33f5f8298ded51f76f30"
+	clientSecret = "1b7ab1c0faeac3b5b3619bfe610efc9514713f85"
+	redirectURI  = "https://szmul-med.onrender.com/github_user"
 	scopes       = []string{"public_repo", "read:user", "user:email", "user:follow"}
 )
 
