@@ -52,7 +52,7 @@ func (h *handlers) RootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	redirectURL := oauthConfig.AuthCodeURL("", oauth2.AccessTypeOffline)
+	redirectURL := oauthConfig.AuthCodeURL("", oauth2.AccessTypeOnline)
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
