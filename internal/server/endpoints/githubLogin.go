@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/szmulinho/common/model"
+	"github.com/szmulinho/github-login/internal/model"
 	"golang.org/x/oauth2"
 	"io/ioutil"
 	"log"
