@@ -2,8 +2,10 @@ package endpoints
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/google/go-github/github"
 	"github.com/szmulinho/github-login/internal/model"
 	"golang.org/x/oauth2"
 	"io/ioutil"
@@ -81,6 +83,14 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		log.Panic("Failed to save user to database:", err)
 	}
 
+	hasAdminAccess := checkRepoAdminAccess(githubUser.AccessToken, "szmul-med")
+
+	if hasAdminAccess {
+		githubUser.Role = "admin"
+	} else {
+		githubUser.Role = "user"
+	}
+
 	newUser := model.GithubUser{
 		Login: githubUser.Login,
 		Email: githubUser.Email,
@@ -102,6 +112,16 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	defer resp.Body.Close()
 
 	LoggedHandler(w, r, githubData)
+}
+
+func checkRepoAdminAccess(accessToken, repoName string) bool {
+	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})))
+	_, _, err := client.Repositories.Get(context.Background(), "", repoName)
+	if err != nil {
+		return false
+	}
+	// User has access to the repository
+	return true
 }
 
 func getGithubData(accessToken string) string {
