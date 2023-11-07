@@ -2,16 +2,10 @@ package config
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
 	"os"
 )
 
 func LoadFromEnv() StorageConfig {
-	err := godotenv.Load(".env")
-	if err != nil {
-		fmt.Printf("Error loading .env file: %v\n")
-	}
-
 	host := os.Getenv("DB_HOST")
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
