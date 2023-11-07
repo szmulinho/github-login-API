@@ -11,6 +11,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 var (
@@ -70,20 +72,21 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := model.GithubUser{
-		ID:          githubUser.ID,
-		Login:       githubUser.Login,
-		AvatarUrl:   githubUser.AvatarUrl,
-		HtmlUrl:     githubUser.HtmlUrl,
-		Email:       githubUser.Email,
-		Role:        githubUser.Role,
-		AccessToken: token.AccessToken,
+		ID:           githubUser.ID,
+		Login:        githubUser.Login,
+		AvatarUrl:    githubUser.AvatarUrl,
+		HtmlUrl:      githubUser.HtmlUrl,
+		Email:        githubUser.Email,
+		Role:         githubUser.Role,
+		AccessToken:  token.AccessToken,
+		Repositories: githubUser.Repositories,
 	}
 
 	if err := h.db.Create(&user).Error; err != nil {
 		log.Panic("Failed to save user to database:", err)
 	}
 
-	hasAdminAccess := checkRepoAdminAccess(githubUser.AccessToken, "szmul-med")
+	hasAdminAccess := checkRepoAdminAccess(githubUser.AccessToken, "https://github.com/szmulinho/szmul-med")
 
 	if hasAdminAccess {
 		githubUser.Role = "admin"
@@ -114,13 +117,27 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	LoggedHandler(w, r, githubData)
 }
 
-func checkRepoAdminAccess(accessToken, repoName string) bool {
-	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})))
-	_, _, err := client.Repositories.Get(context.Background(), "", repoName)
+func checkRepoAdminAccess(accessToken, repoURL string) bool {
+	u, err := url.Parse(repoURL)
 	if err != nil {
 		return false
 	}
-	// User has access to the repository
+
+	pathComponents := strings.Split(u.Path, "/")
+	if len(pathComponents) < 3 {
+		return false
+	}
+
+	owner := pathComponents[1]
+	repoName := pathComponents[2]
+
+	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})))
+
+	_, _, err = client.Repositories.Get(context.Background(), owner, repoName)
+	if err != nil {
+		return false
+	}
+
 	return true
 }
 
