@@ -15,32 +15,30 @@ import (
 	"strings"
 )
 
-var (
-	oauthConfig = oauth2.Config{
-		ClientID:     "065d047663d40d183c04",
-		ClientSecret: "7b7c2239b98e0b66d53e6b2adbfd8722561512f4",
-		Scopes: []string{
-			"public_repo"},
-		RedirectURL: "https://szmul-med.onrender.com/github_user",
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://github.com/login/oauth/authorize",
-			TokenURL: "https://github.com/login/oauth/access_token",
-		},
-	}
-)
+var oauthConfig = oauth2.Config{
+	ClientID:     "065d047663d40d183c04",
+	ClientSecret: "7b7c2239b98e0b66d53e6b2adbfd8722561512f4",
+	Scopes:       []string{"repo"},
+	RedirectURL:  "https://szmul-med.onrender.com/github_user",
+	Endpoint: oauth2.Endpoint{
+		AuthURL:  "https://github.com/login/oauth/authorize",
+		TokenURL: "https://github.com/login/oauth/access_token",
+	},
+}
 
 func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
 	if githubData == "" {
-		fmt.Fprintf(w, "UNAUTHORIZED!")
+		http.Error(w, "UNAUTHORIZED!", http.StatusUnauthorized)
 		return
 	}
 
-	w.Header().Set("Content-type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 
 	var prettyJSON bytes.Buffer
-	parserr := json.Indent(&prettyJSON, []byte(githubData), "", "\t")
-	if parserr != nil {
-		log.Panic("JSON parse error")
+	if err := json.Indent(&prettyJSON, []byte(githubData), "", "\t"); err != nil {
+		log.Println("JSON parse error:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 
 	fmt.Fprintf(w, string(prettyJSON.Bytes()))
@@ -52,8 +50,7 @@ func (h *handlers) RootHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	redirectURL := oauthConfig.AuthCodeURL("", oauth2.AccessTypeOffline)
-
-	http.Redirect(w, r, redirectURL, 301)
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
@@ -62,28 +59,16 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	token, err := oauthConfig.Exchange(r.Context(), code)
 	if err != nil {
 		log.Fatal("OAuth exchange failed:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 
 	githubData := getGithubData(token.AccessToken)
-
 	var githubUser model.GithubUser
 	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
-		log.Panic("Error parsing GitHub data:", err)
-	}
-
-	user := model.GithubUser{
-		ID:           githubUser.ID,
-		Login:        githubUser.Login,
-		AvatarUrl:    githubUser.AvatarUrl,
-		HtmlUrl:      githubUser.HtmlUrl,
-		Email:        githubUser.Email,
-		Role:         githubUser.Role,
-		AccessToken:  token.AccessToken,
-		Repositories: githubUser.Repositories,
-	}
-
-	if err := h.db.Create(&user).Error; err != nil {
-		log.Panic("Failed to save user to database:", err)
+		log.Println("Error parsing GitHub data:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 
 	hasAdminAccess := checkRepoAdminAccess(githubUser.AccessToken, "https://github.com/szmulinho/szmul-med")
@@ -94,6 +79,15 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		githubUser.Role = "user"
 	}
 
+	// Save user to the database
+	err = h.db.Create(&githubUser).Error
+	if err != nil {
+		log.Println("Failed to save user to database:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Create a simplified user object for response
 	newUser := model.GithubUser{
 		Login: githubUser.Login,
 		Email: githubUser.Email,
@@ -102,14 +96,16 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	userJSON, err := json.Marshal(newUser)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println("JSON marshaling error:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
+	// Send user data to the user-api for registration
 	resp, err := http.Post("https://szmul-med-users.onrender.com/register", "application/json", bytes.NewBuffer(userJSON))
 	if err != nil {
 		log.Println("Failed to create user in user-api:", err)
-		http.Error(w, "Failed to create user in user-api", http.StatusInternalServerError)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	defer resp.Body.Close()
@@ -128,38 +124,39 @@ func checkRepoAdminAccess(accessToken, repoURL string) bool {
 		return false
 	}
 
-	owner := pathComponents[1]
-	repoName := pathComponents[2]
+	owner, repoName := pathComponents[1], pathComponents[2]
 
 	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})))
 
 	_, _, err = client.Repositories.Get(context.Background(), owner, repoName)
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }
 
 func getGithubData(accessToken string) string {
-	req, reqerr := http.NewRequest(
+	req, err := http.NewRequest(
 		"GET",
 		"https://api.github.com/user",
 		nil,
 	)
-	if reqerr != nil {
-		log.Panic("API Request creation failed")
+	if err != nil {
+		log.Println("API Request creation failed:", err)
+		return ""
 	}
 
-	authorizationHeaderValue := fmt.Sprintf("token %s", accessToken)
-	req.Header.Set("Authorization", authorizationHeaderValue)
+	req.Header.Set("Authorization", "token "+accessToken)
 
-	resp, resperr := http.DefaultClient.Do(req)
-	if resperr != nil {
-		log.Panic("Request failed")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Println("Request failed:", err)
+		return ""
+	}
+	defer resp.Body.Close()
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("Response read failed:", err)
+		return ""
 	}
 
-	respbody, _ := ioutil.ReadAll(resp.Body)
-
-	return string(respbody)
+	return string(respBody)
 }
