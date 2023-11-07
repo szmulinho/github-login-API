@@ -18,7 +18,7 @@ var (
 		ClientID:     "065d047663d40d183c04",
 		ClientSecret: "7b7c2239b98e0b66d53e6b2adbfd8722561512f4",
 		Scopes: []string{
-			"repo:read"},
+			"public_repo"},
 		RedirectURL: "https://szmul-med.onrender.com/github_user",
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  "https://github.com/login/oauth/authorize",
