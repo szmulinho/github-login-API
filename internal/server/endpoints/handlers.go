@@ -11,7 +11,7 @@ type Handlers interface {
 	HandleCallback(w http.ResponseWriter, r *http.Request)
 	RootHandler(w http.ResponseWriter, r *http.Request)
 	GetUserDataHandler(w http.ResponseWriter, r *http.Request)
-	getUserFromToken(tokenString string) (*model.GithubUser, error)
+	getUserFromToken(tokenString string) (*model.GitHubLogin, error)
 }
 
 type handlers struct {
