@@ -15,7 +15,7 @@ func Run(ctx context.Context, db *gorm.DB) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", handler.RootHandler)
 	router.HandleFunc("/login", handler.HandleLogin)
-	router.HandleFunc("/github/callback", handler.HandleCallback)
+	router.HandleFunc("/callback", handler.HandleCallback)
 	router.HandleFunc("/user", handler.GetUserDataHandler).Methods("GET")
 	http.HandleFunc("/logged", func(w http.ResponseWriter, r *http.Request) {
 		endpoints.LoggedHandler(w, r, "")
