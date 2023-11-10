@@ -43,6 +43,23 @@ func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
 	}
 
 	fmt.Fprintf(w, string(prettyJSON.Bytes()))
+
+	// You can also access the user's public repositories and other information using the `GitHubLogin` struct:
+	var githubUser model.GitHubLogin
+	err := json.Unmarshal([]byte(githubData), &githubUser)
+	if err != nil {
+		log.Println("Error parsing GitHub data:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Print the user's public repositories to the console:
+	for _, repo := range githubUser.PublicRepos {
+		fmt.Println(repo.Name)
+	}
+
+	// Print the user's email address to the console:
+	fmt.Println(githubUser.User.Email)
 }
 
 func (h *handlers) RootHandler(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +82,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	githubData := getGithubData(token.AccessToken)
-	var githubUser model.GithubUser
+	var githubUser model.GitHubLogin
 	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
 		log.Println("Error parsing GitHub data:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -81,17 +98,8 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Authorization", "Bearer "+jwtToken)
 
-	hasAdminAccess := checkRepoAdminAccess(githubUser.AccessToken, "https://github.com/szmulinho/szmul-med")
-
-	if hasAdminAccess {
-		githubUser.Role = "admin"
-	} else {
-		githubUser.Role = "user"
-	}
-	newUser := model.GithubUser{
-		Login: githubUser.Login,
-		Email: githubUser.Email,
-		Role:  githubUser.Role,
+	newUser := model.GitHubLogin{
+		User: githubUser.User,
 	}
 
 	userJSON, err := json.Marshal(newUser)
@@ -155,6 +163,13 @@ func getGithubData(accessToken string) string {
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Response read failed:", err)
+		return ""
+	}
+
+	var githubUser model.GitHubLogin
+	err = json.Unmarshal(respBody, &githubUser)
+	if err != nil {
+		log.Println("Error parsing GitHub data:", err)
 		return ""
 	}
 

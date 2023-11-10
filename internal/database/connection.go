@@ -16,7 +16,10 @@ func Connect() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err := db.AutoMigrate(&model.Repository{}); err != nil {
+	if err := db.AutoMigrate(&model.PublicRepo{}); err != nil {
+		return nil, err
+	}
+	if err := db.AutoMigrate(&model.GitHubLogin{}); err != nil {
 		return nil, err
 	}
 

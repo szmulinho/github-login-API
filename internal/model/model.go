@@ -4,22 +4,18 @@ import (
 	"os"
 )
 
-type GithubUser struct {
-	ID           int64         `gorm:"unique_index"`
-	Login        string        `json:"login"`
-	AvatarUrl    string        `json:"avatar_url"`
-	HtmlUrl      string        `json:"html_url"`
-	Email        string        `json:"email"`
-	Role         string        `json:"role"`
-	AccessToken  string        `json:"-"`
-	Repositories []*Repository `gorm:"many2many:user_repositories;"`
+type GitHubLogin struct {
+	PublicRepos []PublicRepo `json:"public_repos"`
+	User        struct {
+		Login     string `json:"login"`
+		Email     string `json:"email"`
+		Followers int    `json:"followers"`
+	} `json:"user"`
 }
 
-type Repository struct {
-	ID           int64  `gorm:"primaryKey;autoIncrement"`
-	Name         string `json:"name"`
-	Permission   string `json:"permission"`
-	GithubUserID int64  `gorm:"many2many:user_repositories;"`
+type PublicRepo struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 var JwtKey = []byte(os.Getenv("JWT_KEY"))
