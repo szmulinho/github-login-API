@@ -89,6 +89,21 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := h.db.Save(&githubUser); err != nil {
+		log.Println("Error saving GitHubLogin to database:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Save the user's public repositories to the database.
+	for _, repo := range githubUser.PublicRepos {
+		if err := h.db.Save(&repo); err != nil {
+			log.Println("Error saving PublicRepo to database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	jwtToken, err := h.GenerateToken(w, r, githubUser, true)
 	if err != nil {
 		// Handle the error (e.g., log it or return an error response to the user)

@@ -10,10 +10,10 @@ import (
 type GitHubLogin struct {
 	gorm.Model
 	PublicRepos []PublicRepo `gorm:"foreignKey:GitHubLoginID"`
-	User        User         `gorm:"foreignKey:GitHubLoginID"`
+	User        GithubUser   `gorm:"foreignKey:GitHubLoginID"`
 }
 
-type User struct {
+type GithubUser struct {
 	gorm.Model
 	Login     string `json:"login"`
 	Email     string `json:"email"`
@@ -29,10 +29,10 @@ type PublicRepo struct {
 
 var JwtKey = []byte(os.Getenv("JWT_KEY"))
 
-func (u *User) Value() (driver.Value, error) {
+func (u *GithubUser) Value() (driver.Value, error) {
 	return json.Marshal(u)
 }
 
-func (u *User) Scan(value interface{}) error {
+func (u *GithubUser) Scan(value interface{}) error {
 	return json.Unmarshal(value.([]byte), u)
 }
