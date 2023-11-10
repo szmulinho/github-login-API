@@ -10,7 +10,7 @@ import (
 type GitHubLogin struct {
 	gorm.Model
 	PublicRepos []PublicRepo `gorm:"foreignKey:GitHubLoginID"`
-	User        GithubUser   `gorm:"foreignKey:GitHubLoginID"`
+	GithubUser  GithubUser   `gorm:"foreignKey:GitHubLoginID"`
 }
 
 type GithubUser struct {
