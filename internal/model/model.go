@@ -1,11 +1,13 @@
 package model
 
 import (
+	"gorm.io/gorm"
 	"os"
 )
 
 type GitHubLogin struct {
-	PublicRepos []PublicRepo `json:"public_repos"`
+	gorm.Model
+	PublicRepos []PublicRepo `gorm:"foreignKey:GitHubLoginID"`
 	User        struct {
 		Login     string `json:"login"`
 		Email     string `json:"email"`
@@ -14,8 +16,10 @@ type GitHubLogin struct {
 }
 
 type PublicRepo struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	gorm.Model
+	GitHubLoginID uint   `gorm:"foreignKey"`
+	ID            int    `json:"id"`
+	Name          string `json:"name"`
 }
 
 var JwtKey = []byte(os.Getenv("JWT_KEY"))
