@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-var oauthConfig = oauth2.Config{
+var oauthConfig2 = oauth2.Config{
 	ClientID:     os.Getenv("CLIENT_ID"),
 	ClientSecret: os.Getenv("CLIENT_SECRET"),
 	Scopes:       []string{"public_repo", "read:user", "user:email", "user:follow"},
@@ -50,14 +50,14 @@ func (h *handlers) RootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	redirectURL := oauthConfig.AuthCodeURL("", oauth2.AccessTypeOnline)
+	redirectURL := oauthConfig2.AuthCodeURL("", oauth2.AccessTypeOnline)
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 
-	token, err := oauthConfig.Exchange(r.Context(), code)
+	token, err := oauthConfig2.Exchange(r.Context(), code)
 	if err != nil {
 		log.Fatal("OAuth exchange failed:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
