@@ -59,7 +59,7 @@ func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
 	}
 
 	// Print the user's email address to the console:
-	fmt.Println(githubUser.User.Email)
+	fmt.Println(githubUser.GithubUser.Email)
 }
 
 func (h *handlers) RootHandler(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +114,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Authorization", "Bearer "+jwtToken)
 
 	newUser := model.GitHubLogin{
-		User: githubUser.User,
+		GithubUser: githubUser.GithubUser,
 	}
 
 	if err := h.db.Save(&newUser); err != nil {
