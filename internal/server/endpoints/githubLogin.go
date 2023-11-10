@@ -46,7 +46,7 @@ func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
 }
 
 func (h *handlers) RootHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, `<a href="/github/login/">LOGIN</a>`)
+	fmt.Fprintf(w, `<a href="/login/">LOGIN</a>`)
 }
 
 func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
