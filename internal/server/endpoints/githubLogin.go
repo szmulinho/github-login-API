@@ -16,18 +16,16 @@ import (
 	"strings"
 )
 
-var (
-	oauthConfig = oauth2.Config{
-		ClientID:     "33f5f8298ded51f76f30",
-		ClientSecret: os.Getenv("CLIENT_SECRET"),
-		Scopes:       []string{"public_repo", "read:user", "user:email", "user:follow"},
-		RedirectURL:  "https://szmul-med.onrender.com/github_user",
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://github.com/login/oauth/authorize",
-			TokenURL: "https://github.com/login/oauth/access_token",
-		},
-	}
-)
+var oauthConfig = oauth2.Config{
+	ClientID:     os.Getenv("CLIENT_ID"),
+	ClientSecret: os.Getenv("CLIENT_SECRET"),
+	Scopes:       []string{"public_repo", "read:user", "user:email", "user:follow"},
+	RedirectURL:  "https://szmul-med.onrender.com/github_user",
+	Endpoint: oauth2.Endpoint{
+		AuthURL:  "https://github.com/login/oauth/authorize",
+		TokenURL: "https://github.com/login/oauth/access_token",
+	},
+}
 
 func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
 	if githubData == "" {
