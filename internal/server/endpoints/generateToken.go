@@ -8,10 +8,11 @@ import (
 	"time"
 )
 
-func (h *handlers) CreateToken(w http.ResponseWriter, r *http.Request, ID int64) (string, error) {
+func (h *handlers) GenerateToken(w http.ResponseWriter, r *http.Request, githubUser model.GithubUser, isGithubUser bool) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userID": ID,
-		"exp":    time.Now().Add(time.Hour * time.Duration(1)).Unix(),
+		"githubUserLogin": githubUser.Login,
+		"isGithubUser":    isGithubUser,
+		"exp":             time.Now().Add(time.Hour * time.Duration(1)).Unix(),
 	})
 
 	tokenString, err := token.SignedString(model.JwtKey)
@@ -19,7 +20,7 @@ func (h *handlers) CreateToken(w http.ResponseWriter, r *http.Request, ID int64)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return "", err
 	} else {
-		fmt.Println("token generated")
+		fmt.Sprintf("token for user %s generated", model.GithubUser{})
 	}
 
 	return tokenString, nil

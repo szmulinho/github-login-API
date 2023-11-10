@@ -72,6 +72,15 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	jwtToken, err := h.GenerateToken(w, r, githubUser, true)
+	if err != nil {
+		// Handle the error (e.g., log it or return an error response to the user)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Authorization", "Bearer "+jwtToken)
+
 	hasAdminAccess := checkRepoAdminAccess(githubUser.AccessToken, "https://github.com/szmulinho/szmul-med")
 
 	if hasAdminAccess {
