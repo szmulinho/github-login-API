@@ -102,6 +102,12 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		User: githubUser.User,
 	}
 
+	if err := h.db.Save(&newUser); err != nil {
+		log.Println("Error saving GitHubLogin to database:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	userJSON, err := json.Marshal(newUser)
 	if err != nil {
 		log.Println("JSON marshaling error:", err)
