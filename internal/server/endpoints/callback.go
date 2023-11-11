@@ -43,9 +43,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	for _, repo := range publicRepos {
 		existingRepo := model.PublicRepo{}
 		if err := h.db.Where("name = ?", repo.Name).First(&existingRepo).Error; err == nil {
-			// Update existing record
 			existingRepo.Description = repo.Description
-			// Update other fields as needed
 			err := h.db.Save(&existingRepo).Error
 			if err != nil {
 				log.Println("Failed to update public repository in database:", err)
