@@ -6,11 +6,11 @@ import (
 )
 
 func LoadFromEnv() StorageConfig {
-	host := os.Getenv("DB_HOST")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
-	port := os.Getenv("DB_PORT")
+	host := os.Getenv("DB_H")
+	user := os.Getenv("DB_U")
+	password := os.Getenv("DB_PASS")
+	dbname := os.Getenv("DB_N")
+	port := os.Getenv("DB_P")
 
 	fmt.Printf("Host: %s\n", host)
 	fmt.Printf("User: %s\n", user)
