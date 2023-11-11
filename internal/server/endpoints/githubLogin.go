@@ -44,22 +44,19 @@ func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
 
 	fmt.Fprintf(w, string(prettyJSON.Bytes()))
 
-	// You can also access the user's public repositories and other information using the `GitHubLogin` struct:
-	var githubUser model.GitHubLogin
-	err := json.Unmarshal([]byte(githubData), &githubUser)
+	var githubLogin model.GitHubLogin
+	err := json.Unmarshal([]byte(githubData), &githubLogin)
 	if err != nil {
 		log.Println("Error parsing GitHub data:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	// Print the user's public repositories to the console:
-	for _, repo := range githubUser.PublicRepos {
+	for _, repo := range githubLogin.PublicRepos {
 		fmt.Println(repo.Name)
 	}
 
-	// Print the user's email address to the console:
-	fmt.Println(githubUser.GithubUser.Email)
+	fmt.Println(githubLogin)
 }
 
 func (h *handlers) RootHandler(w http.ResponseWriter, r *http.Request) {
@@ -82,31 +79,15 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	githubData := getGithubData(token.AccessToken)
-	var githubUser model.GitHubLogin
+	var githubUser model.GithubUser
 	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
 		log.Println("Error parsing GitHub data:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	if err := h.db.Save(&githubUser); err != nil {
-		log.Println("Error saving GitHubLogin to database:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	// Save the user's public repositories to the database.
-	for _, repo := range githubUser.PublicRepos {
-		if err := h.db.Save(&repo); err != nil {
-			log.Println("Error saving PublicRepo to database:", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-	}
-
 	jwtToken, err := h.GenerateToken(w, r, githubUser, true)
 	if err != nil {
-		// Handle the error (e.g., log it or return an error response to the user)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -114,7 +95,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Authorization", "Bearer "+jwtToken)
 
 	newUser := model.GitHubLogin{
-		GithubUser: githubUser.GithubUser,
+		GithubUser: githubUser,
 	}
 
 	if err := h.db.Save(&newUser); err != nil {
@@ -130,7 +111,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Send user data to the user-api for registration
 	resp, err := http.Post("https://szmul-med-users.onrender.com/register", "application/json", bytes.NewBuffer(userJSON))
 	if err != nil {
 		log.Println("Failed to create user in user-api:", err)
