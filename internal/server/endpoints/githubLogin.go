@@ -102,12 +102,9 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the public repository already exists in the database
 	existingRepo := model.PublicRepo{}
-	if err := h.db.Where("repo_name = ?", publicRepo.Name).First(&existingRepo).Error; err == nil {
-		// Update existing record
+	if err := h.db.Where("name = ?", publicRepo.Name).First(&existingRepo).Error; err == nil {
 		existingRepo.Description = publicRepo.Description
-		// Update other fields as needed
 		err := h.db.Save(&existingRepo).Error
 		if err != nil {
 			log.Println("Failed to update public repository in database:", err)
