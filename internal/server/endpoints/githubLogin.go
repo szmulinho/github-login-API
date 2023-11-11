@@ -27,6 +27,11 @@ var oauthConfig2 = oauth2.Config{
 	},
 }
 
+func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
+	redirectURL := oauthConfig2.AuthCodeURL("", oauth2.AccessTypeOnline)
+	http.Redirect(w, r, redirectURL, http.StatusFound)
+}
+
 func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
 	if githubData == "" {
 		http.Error(w, "UNAUTHORIZED!", http.StatusUnauthorized)
