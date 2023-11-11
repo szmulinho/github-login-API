@@ -72,6 +72,19 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var publicRepo model.PublicRepo
+	if err := json.Unmarshal([]byte(githubData), &publicRepo); err != nil {
+		log.Println("Error parsing GitHub data:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.db.Create(&publicRepo).Error
+	if err != nil {
+		log.Println("Falied to save publc repositories to database:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+
 	hasAdminAccess := checkRepoAdminAccess(githubUser.AccessToken, "https://github.com/szmulinho/szmul-med")
 
 	if hasAdminAccess {
@@ -85,14 +98,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		log.Println("Failed to save user to database:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
-	}
-
-	var publicRepo model.PublicRepo
-
-	err = h.db.Create(&publicRepo).Error
-	if err != nil {
-		log.Println("Falied to save publc repositories to database:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 
 	newUser := model.GithubUser{
