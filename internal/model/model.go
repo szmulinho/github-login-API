@@ -21,7 +21,7 @@ type GithubUser struct {
 	Followers    int          `json:"followers"`
 	AccessToken  string       `json:"-"`
 	Role         string       `json:"role"`
-	Repositories []PublicRepo `json:"repositories"`
+	Repositories []PublicRepo `json:"repositories" gorm:"foreignKey:GitHubLoginID"`
 }
 
 type PublicRepo struct {
