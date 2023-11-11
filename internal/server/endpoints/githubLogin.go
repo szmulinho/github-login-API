@@ -49,11 +49,6 @@ func (h *handlers) RootHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `<a href="/login/">LOGIN</a>`)
 }
 
-func (h *handlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	redirectURL := oauthConfig2.AuthCodeURL("", oauth2.AccessTypeOnline)
-	http.Redirect(w, r, redirectURL, http.StatusFound)
-}
-
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 
@@ -73,20 +68,25 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if the user already exists in the database
 	existingUser := model.GithubUser{}
-	if err := h.db.Where("github_user = ?", githubUser.Login).First(&existingUser).Error; err == nil {
+	if err := h.db.Where("login = ?", githubUser.Login).First(&existingUser).Error; err == nil {
+		// Update existing record
+		existingUser.Email = githubUser.Email
+		// Update other fields as needed
 		err := h.db.Save(&existingUser).Error
 		if err != nil {
 			log.Println("Failed to update github user in database:", err)
-			http.Error(w, "Internal server Error", http.StatusInternalServerError)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
-		} else {
-			err = h.db.Create(&githubUser).Error
-			if err != nil {
-				log.Println("Failed to save user to database:", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
+		}
+	} else {
+		// Create new record if it doesn't exist
+		err := h.db.Create(&githubUser).Error
+		if err != nil {
+			log.Println("Failed to save user to database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
 		}
 	}
 
@@ -97,8 +97,12 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if the public repository already exists in the database
 	existingRepo := model.PublicRepo{}
 	if err := h.db.Where("repo_name = ?", publicRepo.Name).First(&existingRepo).Error; err == nil {
+		// Update existing record
+		existingRepo.Description = publicRepo.Description
+		// Update other fields as needed
 		err := h.db.Save(&existingRepo).Error
 		if err != nil {
 			log.Println("Failed to update public repository in database:", err)
