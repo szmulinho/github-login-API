@@ -25,11 +25,10 @@ type GithubUser struct {
 
 type PublicRepo struct {
 	gorm.Model
-	GitHubLoginID   uint   `gorm:"foreignKey"`
-	ID              int    `json:"id"`
-	Name            string `json:"name"`
-	Description     string `json:"description"`
-	GithubUserLogin string // Field to store the GithubUser Login
+	GitHubLoginID uint   `gorm:"foreignKey"`
+	ID            int    `json:"id"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
 }
 
 var JwtKey = []byte(os.Getenv("JWT_KEY"))
