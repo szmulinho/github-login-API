@@ -43,20 +43,6 @@ func LoggedHandler(w http.ResponseWriter, r *http.Request, githubData string) {
 	}
 
 	fmt.Fprintf(w, string(prettyJSON.Bytes()))
-
-	var githubLogin model.GitHubLogin
-	err := json.Unmarshal([]byte(githubData), &githubLogin)
-	if err != nil {
-		log.Println("Error parsing GitHub data:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	for _, repo := range githubLogin.PublicRepos {
-		fmt.Println(repo.Name)
-	}
-
-	fmt.Println(githubLogin)
 }
 
 func (h *handlers) RootHandler(w http.ResponseWriter, r *http.Request) {
@@ -86,22 +72,27 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jwtToken, err := h.GenerateToken(w, r, githubUser, true)
+	hasAdminAccess := checkRepoAdminAccess(githubUser.AccessToken, "https://github.com/szmulinho/szmul-med")
+
+	if hasAdminAccess {
+		githubUser.Role = "admin"
+	} else {
+		githubUser.Role = "user"
+	}
+
+	// Save user to the database
+	err = h.db.Create(&githubUser).Error
 	if err != nil {
+		log.Println("Failed to save user to database:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Authorization", "Bearer "+jwtToken)
-
-	newUser := model.GitHubLogin{
-		GithubUser: githubUser,
-	}
-
-	if err := h.db.Save(&newUser); err != nil {
-		log.Println("Error saving GitHubLogin to database:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+	// Create a simplified user object for response
+	newUser := model.GithubUser{
+		Login: githubUser.Login,
+		Email: githubUser.Email,
+		Role:  githubUser.Role,
 	}
 
 	userJSON, err := json.Marshal(newUser)
@@ -111,6 +102,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Send user data to the user-api for registration
 	resp, err := http.Post("https://szmul-med-users.onrender.com/register", "application/json", bytes.NewBuffer(userJSON))
 	if err != nil {
 		log.Println("Failed to create user in user-api:", err)
@@ -164,13 +156,6 @@ func getGithubData(accessToken string) string {
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Response read failed:", err)
-		return ""
-	}
-
-	var githubUser model.GitHubLogin
-	err = json.Unmarshal(respBody, &githubUser)
-	if err != nil {
-		log.Println("Error parsing GitHub data:", err)
 		return ""
 	}
 
