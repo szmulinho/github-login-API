@@ -65,11 +65,29 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	githubData := getGithubData(token.AccessToken)
+
 	var githubUser model.GithubUser
 	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
 		log.Println("Error parsing GitHub data:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
+	}
+
+	existingUser := model.GithubUser{}
+	if err := h.db.Where("github_user = ?", githubUser.Login).First(&existingUser).Error; err == nil {
+		err := h.db.Save(&existingUser).Error
+		if err != nil {
+			log.Println("Failed to update github user in database:", err)
+			http.Error(w, "Internal server Error", http.StatusInternalServerError)
+			return
+		} else {
+			err = h.db.Create(&githubUser).Error
+			if err != nil {
+				log.Println("Failed to save user to database:", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+		}
 	}
 
 	var publicRepo model.PublicRepo
@@ -79,10 +97,22 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.db.Create(&publicRepo).Error
-	if err != nil {
-		log.Println("Falied to save publc repositories to database:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	existingRepo := model.PublicRepo{}
+	if err := h.db.Where("repo_name = ?", publicRepo.Name).First(&existingRepo).Error; err == nil {
+		err := h.db.Save(&existingRepo).Error
+		if err != nil {
+			log.Println("Failed to update public repository in database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		// Create new record if it doesn't exist
+		err := h.db.Create(&publicRepo).Error
+		if err != nil {
+			log.Println("Failed to save public repository to database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	hasAdminAccess := checkRepoAdminAccess(githubUser.AccessToken, "https://github.com/szmulinho/szmul-med")
@@ -91,13 +121,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		githubUser.Role = "admin"
 	} else {
 		githubUser.Role = "user"
-	}
-
-	err = h.db.Create(&githubUser).Error
-	if err != nil {
-		log.Println("Failed to save user to database:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
 	}
 
 	newUser := model.GithubUser{
