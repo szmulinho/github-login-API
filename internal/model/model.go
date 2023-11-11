@@ -15,12 +15,13 @@ type GitHubLogin struct {
 
 type GithubUser struct {
 	gorm.Model
-	Login       string `json:"login"`
-	Email       string `json:"email"`
-	AvatarUrl   string `json:"avatarUrl"`
-	Followers   int    `json:"followers"`
-	AccessToken string `json:"-"`
-	Role        string `json:"role"`
+	Login        string       `json:"login"`
+	Email        string       `json:"email"`
+	AvatarUrl    string       `json:"avatarUrl"`
+	Followers    int          `json:"followers"`
+	AccessToken  string       `json:"-"`
+	Role         string       `json:"role"`
+	Repositories []PublicRepo `json:"repositories"`
 }
 
 type PublicRepo struct {

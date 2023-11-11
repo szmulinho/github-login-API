@@ -9,9 +9,10 @@ import (
 type Handlers interface {
 	HandleLogin(w http.ResponseWriter, r *http.Request)
 	HandleCallback(w http.ResponseWriter, r *http.Request)
-	RootHandler(w http.ResponseWriter, r *http.Request)
 	GetUserDataHandler(w http.ResponseWriter, r *http.Request)
 	getUserFromToken(tokenString string) (*model.GitHubLogin, error)
+	checkRepoAdminAccess(accessToken, repoName string) bool
+	getData(accessToken, apiUrl string) (string, error)
 }
 
 type handlers struct {
