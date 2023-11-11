@@ -80,7 +80,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		githubUser.Role = "user"
 	}
 
-	// Save user to the database
 	err = h.db.Create(&githubUser).Error
 	if err != nil {
 		log.Println("Failed to save user to database:", err)
@@ -88,7 +87,14 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create a simplified user object for response
+	var publicRepo model.PublicRepo
+
+	err = h.db.Create(&publicRepo).Error
+	if err != nil {
+		log.Println("Falied to save publc repositories to database:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+
 	newUser := model.GithubUser{
 		Login: githubUser.Login,
 		Email: githubUser.Email,
