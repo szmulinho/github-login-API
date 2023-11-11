@@ -116,7 +116,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	hasAdminAccess := h.checkRepoAdminAccess(githubUser.AccessToken, "szmul-med")
+	hasAdminAccess := h.checkRepoAdminAccess(githubUser.AccessToken, publicRepo, existingUser)
 
 	if hasAdminAccess {
 		githubUser.Role = "admin"
