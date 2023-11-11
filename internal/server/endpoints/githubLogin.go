@@ -64,7 +64,13 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	githubData := getGithubData(token.AccessToken)
+	userURL := "https://api.github.com/user"
+	githubData, err := getGithubData(token.AccessToken, userURL)
+	if err != nil {
+		log.Println("Error fetching user repositories:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 
 	var githubUser model.GithubUser
 	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
@@ -73,12 +79,9 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the user already exists in the database
 	existingUser := model.GithubUser{}
 	if err := h.db.Where("login = ?", githubUser.Login).First(&existingUser).Error; err == nil {
-		// Update existing record
 		existingUser.Email = githubUser.Email
-		// Update other fields as needed
 		err := h.db.Save(&existingUser).Error
 		if err != nil {
 			log.Println("Failed to update github user in database:", err)
@@ -86,7 +89,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		// Create new record if it doesn't exist
 		err := h.db.Create(&githubUser).Error
 		if err != nil {
 			log.Println("Failed to save user to database:", err)
@@ -118,6 +120,46 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 			log.Println("Failed to save public repository to database:", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
+		}
+	}
+
+	reposURL := "https://api.github.com/user/repos"
+	reposResp, err := getGithubData(token.AccessToken, reposURL)
+	if err != nil {
+		log.Println("Error fetching user repositories:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Parse the repositories data
+	var publicRepos []model.PublicRepo
+	if err := json.Unmarshal([]byte(reposResp), &publicRepos); err != nil {
+		log.Println("Error parsing GitHub repositories data:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Iterate over each public repository and store/update in the database
+	for _, repo := range publicRepos {
+		existingRepo := model.PublicRepo{}
+		if err := h.db.Where("name = ?", repo.Name).First(&existingRepo).Error; err == nil {
+			// Update existing record
+			existingRepo.Description = repo.Description
+			// Update other fields as needed
+			err := h.db.Save(&existingRepo).Error
+			if err != nil {
+				log.Println("Failed to update public repository in database:", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			// Create new record if it doesn't exist
+			err := h.db.Create(&repo).Error
+			if err != nil {
+				log.Println("Failed to save public repository to database:", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
 		}
 	}
 
@@ -173,15 +215,11 @@ func checkRepoAdminAccess(accessToken, repoURL string) bool {
 	return err == nil
 }
 
-func getGithubData(accessToken string) string {
-	req, err := http.NewRequest(
-		"GET",
-		"https://api.github.com/user",
-		nil,
-	)
+func getGithubData(accessToken, apiUrl string) (string, error) {
+	req, err := http.NewRequest("GET", apiUrl, nil)
 	if err != nil {
 		log.Println("API Request creation failed:", err)
-		return ""
+		return "", err
 	}
 
 	req.Header.Set("Authorization", "token "+accessToken)
@@ -189,15 +227,15 @@ func getGithubData(accessToken string) string {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Println("Request failed:", err)
-		return ""
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Response read failed:", err)
-		return ""
+		return "", err
 	}
 
-	return string(respBody)
+	return string(respBody), nil
 }
