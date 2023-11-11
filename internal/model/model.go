@@ -21,15 +21,17 @@ type GithubUser struct {
 	Followers   int          `json:"followers"`
 	AccessToken string       `json:"-"`
 	Role        string       `json:"role"`
-	Repos       []PublicRepo `json:"repos" gorm:"foreignKey:GithubUserRepos"`
+	PublicRepos []PublicRepo `gorm:"foreignKey:GitHubLoginID"`
 }
 
 type PublicRepo struct {
 	gorm.Model
-	GitHubLoginID uint   `gorm:"foreignKey"`
-	ID            int    `json:"id"`
-	Name          string `json:"name"`
-	Description   string `json:"description"`
+	GitHubLoginID   uint `gorm:"foreignKey"`
+	GithubUser      GithubUser
+	ID              int    `json:"id"`
+	Name            string `json:"name"`
+	Description     string `json:"description"`
+	GithubUserLogin string
 }
 
 var JwtKey = []byte(os.Getenv("JWT_KEY"))
