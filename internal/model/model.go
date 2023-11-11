@@ -28,7 +28,7 @@ type PublicRepo struct {
 	GitHubLoginID uint   `gorm:"foreignKey"`
 	ID            int    `json:"id"`
 	Name          string `json:"name"`
-	Description   interface{}
+	Description   string `json:"description"`
 }
 
 var JwtKey = []byte(os.Getenv("JWT_KEY"))
