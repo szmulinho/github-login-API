@@ -25,8 +25,7 @@ type GithubUser struct {
 
 type PublicRepo struct {
 	gorm.Model
-	GitHubLoginID   uint `gorm:"foreignKey"`
-	GithubUser      GithubUser
+	GitHubLoginID   uint   `gorm:"foreignKey"`
 	ID              int    `json:"id"`
 	Name            string `json:"name"`
 	Description     string `json:"description"`
