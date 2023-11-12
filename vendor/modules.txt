@@ -45,6 +45,11 @@ github.com/jinzhu/inflection
 # github.com/jinzhu/now v1.1.5
 ## explicit; go 1.12
 github.com/jinzhu/now
+# github.com/lib/pq v1.10.9
+## explicit; go 1.13
+github.com/lib/pq
+github.com/lib/pq/oid
+github.com/lib/pq/scram
 # github.com/szmulinho/common v0.0.0-20231013130355-af30704a82f7
 ## explicit; go 1.21.1
 github.com/szmulinho/common/utils
