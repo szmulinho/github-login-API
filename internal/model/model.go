@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 	"os"
 )
@@ -15,13 +16,13 @@ type GitHubLogin struct {
 
 type GithubUser struct {
 	gorm.Model
-	Login       string `json:"login"`
-	Email       string `json:"email"`
-	AvatarUrl   string `json:"avatarUrl"`
-	Followers   int    `json:"followers"`
-	AccessToken string `json:"-"`
-	Role        string `json:"role"`
-	PublicRepo  `json:"public_repos" gorm:"foreignKey:GitHubLoginID"`
+	Login       string         `json:"login"`
+	Email       string         `json:"email"`
+	AvatarUrl   string         `json:"avatarUrl"`
+	Followers   int            `json:"followers"`
+	AccessToken string         `json:"-"`
+	Role        string         `json:"role"`
+	PublicRepo  pq.StringArray `json:"public_repos" gorm:"foreignKey:GitHubLoginID"`
 }
 
 type PublicRepo struct {
