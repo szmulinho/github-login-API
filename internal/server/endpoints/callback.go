@@ -84,8 +84,9 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Parse the repositories data
 	var publicRepos []model.PublicRepo
-	if err := json.Unmarshal([]byte(reposResp), &publicRepo); err != nil {
+	if err := json.Unmarshal([]byte(reposResp), &publicRepos); err != nil {
 		log.Println("Error parsing GitHub repositories data:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
