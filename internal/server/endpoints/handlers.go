@@ -9,7 +9,7 @@ import (
 type Handlers interface {
 	HandleLogin(w http.ResponseWriter, r *http.Request)
 	HandleCallback(w http.ResponseWriter, r *http.Request)
-	GetUserDataHandler(w http.ResponseWriter, r *http.Request, tokenString string)
+	GetUserDataHandler(w http.ResponseWriter, r *http.Request)
 	getUserFromToken(tokenString string) (*model.GitHubLogin, error)
 	checkRepoAdminAccess(accessToken string, user model.GithubUser) bool
 	getData(accessToken, apiUrl string) (string, error)

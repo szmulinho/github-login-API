@@ -10,7 +10,8 @@ import (
 	"strings"
 )
 
-func (h *handlers) GetUserDataHandler(w http.ResponseWriter, r *http.Request, tokenString string) {
+func (h *handlers) GetUserDataHandler(w http.ResponseWriter, r *http.Request) {
+	tokenString := r.Header.Get("Authorization")
 
 	githubUser, err := h.getUserFromToken(tokenString)
 	if err != nil {

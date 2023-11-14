@@ -131,6 +131,8 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
+	Logged(w, r, githubData)
+
 	tokenString, err := h.GenerateToken(w, r, githubUser, true)
 	if err != nil {
 		log.Println("Error generating token:", err)
@@ -138,7 +140,5 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.GetUserDataHandler(w, r, tokenString)
-
-	Logged(w, r, githubData)
+	h.getUserFromToken(tokenString)
 }
