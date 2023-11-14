@@ -3,6 +3,7 @@ package endpoints
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/szmulinho/github-login/internal/model"
 	"log"
 	"net/http"
@@ -80,6 +81,12 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	token2, err := h.GenerateToken(w, r, githubUser, true)
+	if err != nil {
+		// Handle error, perhaps return an internal server error
+		return
+	}
+
 	var publicRepo model.PublicRepo
 	if err := json.Unmarshal([]byte(githubData), &publicRepo); err != nil {
 		log.Println("Error parsing GitHub data:", err)
@@ -130,6 +137,12 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer resp.Body.Close()
+
+	getUserFromToken, err := h.getUserFromToken(token2)
+	if err != nil {
+		fmt.Println(getUserFromToken)
+		return
+	}
 
 	Logged(w, r, githubData)
 }
