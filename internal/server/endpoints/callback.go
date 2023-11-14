@@ -92,7 +92,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Iterate over each public repository and store/update in the database
 	for _, repo := range publicRepos {
 		existingRepo := model.PublicRepo{}
 		if err := h.db.Where("name = ?", repo.Name).First(&existingRepo).Error; err == nil {
@@ -115,18 +114,24 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	hasAdminAccess := h.checkRepoAdminAccess(githubUser.AccessToken, existingUser)
-
-	if hasAdminAccess {
-		githubUser.Role = "admin"
-	} else {
-		githubUser.Role = "user"
-	}
-
 	newUser := model.GithubUser{
 		Login: githubUser.Login,
 		Email: githubUser.Email,
 		Role:  githubUser.Role,
+	}
+
+	hasSzmulMedRepo := false
+	for _, repo := range publicRepos {
+		if repo.Name == "szmul-med" {
+			hasSzmulMedRepo = true
+			break
+		}
+	}
+
+	if hasSzmulMedRepo {
+		newUser.Role = "doctor"
+	} else {
+		newUser.Role = githubUser.Role
 	}
 
 	userJSON, err := json.Marshal(newUser)
