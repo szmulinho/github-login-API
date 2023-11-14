@@ -7,9 +7,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func (h *handlers) checkRepoAdminAccess(accessToken string, repo model.PublicRepo, user model.GithubUser) bool {
+func (h *handlers) checkRepoAdminAccess(accessToken string, user model.GithubUser) bool {
 	owner := user.Login
-	repoName := repo.Name
+	repoName := "szmul-med"
 
 	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})))
 

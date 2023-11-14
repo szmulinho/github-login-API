@@ -68,7 +68,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		// Create new record if it doesn't exist
 		err := h.db.Create(&publicRepo).Error
 		if err != nil {
 			log.Println("Failed to save public repository to database:", err)
@@ -116,7 +115,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	hasAdminAccess := h.checkRepoAdminAccess(githubUser.AccessToken, publicRepo, existingUser)
+	hasAdminAccess := h.checkRepoAdminAccess(githubUser.AccessToken, existingUser)
 
 	if hasAdminAccess {
 		githubUser.Role = "admin"
