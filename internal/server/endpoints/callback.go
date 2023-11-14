@@ -131,6 +131,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	Logged(w, r, githubData)
+	h.Logged(w, r, githubData)
 
 }
