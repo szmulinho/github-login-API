@@ -21,7 +21,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Authorization", "Bearer "+tokenString)
-	h.getUserFromToken(tokenString)
 
 	code := r.URL.Query().Get("code")
 
