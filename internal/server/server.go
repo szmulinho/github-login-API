@@ -17,7 +17,7 @@ func Run(ctx context.Context, db *gorm.DB) {
 	router.HandleFunc("/callback", handler.HandleCallback)
 	router.HandleFunc("/user", handler.GetUserDataHandler).Methods("GET")
 	http.HandleFunc("/logged", func(w http.ResponseWriter, r *http.Request) {
-		endpoints.Logged(w, r, "")
+		endpoints.Handlers.Logged(handler, w, r, "")
 	})
 
 	cors := handlers.CORS(

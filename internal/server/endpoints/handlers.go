@@ -13,6 +13,7 @@ type Handlers interface {
 	getUserFromToken(tokenString string) (*model.GitHubLogin, error)
 	checkRepoAdminAccess(accessToken string, user model.GithubUser) bool
 	getData(accessToken, apiUrl string) (string, error)
+	Logged(w http.ResponseWriter, r *http.Request, githubData string)
 }
 
 type handlers struct {
