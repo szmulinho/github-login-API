@@ -92,40 +92,23 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, repo := range publicRepos {
-		existingRepo := model.PublicRepo{}
-		if err := h.db.Where("name = ?", repo.Name).First(&existingRepo).Error; err == nil {
-			// Update existing record
-			existingRepo.Description = repo.Description
-			// Update other fields as needed
-			err := h.db.Save(&existingRepo).Error
-			if err != nil {
-				log.Println("Failed to update public repository in database:", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-		} else {
-			err := h.db.Create(&repo).Error
-			if err != nil {
-				log.Println("Failed to save public repository to database:", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-		}
-	}
-
-	newUser := model.GithubUser{
-		Login: githubUser.Login,
-		Email: githubUser.Email,
-		Role:  githubUser.Role,
-	}
-
 	hasSzmulMedRepo := false
 	for _, repo := range publicRepos {
 		if repo.Name == "szmul-med" {
 			hasSzmulMedRepo = true
 			break
 		}
+	}
+
+	registerAPIURL := "https://szmul-med-users.onrender.com/register"
+	if hasSzmulMedRepo {
+		registerAPIURL = "https://szmul-med-doctors.onrender.com/register"
+	}
+
+	newUser := model.GithubUser{
+		Login: githubUser.Login,
+		Email: githubUser.Email,
+		Role:  githubUser.Role,
 	}
 
 	if hasSzmulMedRepo {
@@ -141,7 +124,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := http.Post("https://szmul-med-users.onrender.com/register", "application/json", bytes.NewBuffer(userJSON))
+	resp, err := http.Post(registerAPIURL, "application/json", bytes.NewBuffer(userJSON))
 	if err != nil {
 		log.Println("Failed to create user in user-api:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
