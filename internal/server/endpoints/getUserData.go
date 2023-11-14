@@ -52,7 +52,7 @@ func (h *handlers) getUserFromToken(tokenString string) (*model.GitHubLogin, err
 		return nil, errors.New("Invalid token claims")
 	}
 
-	githubUserLogin := int64(claims["githubUserLogin"].(float64))
+	githubUserLogin := claims["githubUserLogin"].(string)
 
 	var githubUser model.GitHubLogin
 	if err := h.db.First(&githubUser, githubUserLogin).Error; err != nil {
