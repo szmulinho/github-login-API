@@ -11,9 +11,9 @@ import (
 )
 
 func (h *handlers) GetUserDataHandler(w http.ResponseWriter, r *http.Request) {
-	tokenString := r.Header.Get("Authorization")
+	token := r.Header.Get("Authorization")
 
-	githubUser, err := h.getUserFromToken(tokenString)
+	githubUser, err := h.getUserFromToken(token)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
