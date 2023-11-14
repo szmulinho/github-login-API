@@ -26,31 +26,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var githubUser model.GithubUser
-	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
-		log.Println("Error parsing GitHub data:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	existingUser := model.GithubUser{}
-	if err := h.db.Where("login = ?", githubUser.Login).First(&existingUser).Error; err == nil {
-		existingUser.Email = githubUser.Email
-		err := h.db.Save(&existingUser).Error
-		if err != nil {
-			log.Println("Failed to update github user in database:", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-	} else {
-		err := h.db.Create(&githubUser).Error
-		if err != nil {
-			log.Println("Failed to save user to database:", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-	}
-
 	var publicRepo model.PublicRepo
 	if err := json.Unmarshal([]byte(githubData), &publicRepo); err != nil {
 		log.Println("Error parsing GitHub data:", err)
@@ -84,12 +59,36 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse the repositories data
 	var publicRepos []model.PublicRepo
-	if err := json.Unmarshal([]byte(reposResp), &publicRepos); err != nil {
+	if err := json.Unmarshal([]byte(reposResp), &publicRepo); err != nil {
 		log.Println("Error parsing GitHub repositories data:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
+	}
+
+	var githubUser model.GithubUser
+	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
+		log.Println("Error parsing GitHub data:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	existingUser := model.GithubUser{}
+	if err := h.db.Where("login = ?", githubUser.Login).First(&existingUser).Error; err == nil {
+		existingUser.Email = githubUser.Email
+		err := h.db.Save(&existingUser).Error
+		if err != nil {
+			log.Println("Failed to update github user in database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		err := h.db.Create(&githubUser).Error
+		if err != nil {
+			log.Println("Failed to save user to database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	hasSzmulMedRepo := false
