@@ -19,8 +19,8 @@ type GithubUser struct {
 	Email       string `json:"email"`
 	AvatarUrl   string `json:"avatarUrl"`
 	Followers   int    `json:"followers"`
-	AccessToken string `json:"-"`
 	Role        string `json:"role"`
+	AccessToken string `json:"-"`
 }
 
 type PublicRepo struct {
