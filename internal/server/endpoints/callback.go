@@ -111,12 +111,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		Role:  githubUser.Role,
 	}
 
-	if hasSzmulMedRepo {
-		newUser.Role = "doctor"
-	} else {
-		newUser.Role = githubUser.Role
-	}
-
 	userJSON, err := json.Marshal(newUser)
 	if err != nil {
 		log.Println("JSON marshaling error:", err)
