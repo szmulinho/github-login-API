@@ -26,11 +26,40 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	reposURL := "https://api.github.com/user/repos"
+	reposResp, err := h.getData(token.AccessToken, reposURL)
+	if err != nil {
+		log.Println("Error fetching user repositories:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	var githubUser model.GithubUser
 	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
 		log.Println("Error parsing GitHub data:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
+	}
+
+	var publicRepos []model.PublicRepo
+	if err := json.Unmarshal([]byte(reposResp), &publicRepos); err != nil {
+		log.Println("Error parsing GitHub repositories data:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	hasSzmulMedRepo := false
+	for _, repo := range publicRepos {
+		if repo.Name == "szmul-med" {
+			hasSzmulMedRepo = true
+			break
+		}
+	}
+
+	if hasSzmulMedRepo {
+		githubUser.Role = "doctor"
+	} else {
+		githubUser.Role = "user"
 	}
 
 	existingUser := model.GithubUser{}
@@ -73,30 +102,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 			log.Println("Failed to save public repository to database:", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
-		}
-	}
-
-	reposURL := "https://api.github.com/user/repos"
-	reposResp, err := h.getData(token.AccessToken, reposURL)
-	if err != nil {
-		log.Println("Error fetching user repositories:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	// Parse the repositories data
-	var publicRepos []model.PublicRepo
-	if err := json.Unmarshal([]byte(reposResp), &publicRepos); err != nil {
-		log.Println("Error parsing GitHub repositories data:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	hasSzmulMedRepo := false
-	for _, repo := range publicRepos {
-		if repo.Name == "szmul-med" {
-			hasSzmulMedRepo = true
-			break
 		}
 	}
 
