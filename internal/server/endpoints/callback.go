@@ -3,7 +3,6 @@ package endpoints
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/szmulinho/github-login/internal/model"
 	"log"
 	"net/http"
@@ -138,11 +137,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	getUserFromToken, err := h.getUserFromToken(token2)
-	if err != nil {
-		fmt.Println(getUserFromToken)
-		return
-	}
+	h.getUserFromToken(token2)
 
 	Logged(w, r, githubData)
 }
