@@ -100,6 +100,12 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if hasSzmulMedRepo {
+		githubUser.Role = "doctor"
+	} else {
+		githubUser.Role = "user"
+	}
+
 	registerAPIURL := "https://szmul-med-users.onrender.com/register"
 	if hasSzmulMedRepo {
 		registerAPIURL = "https://szmul-med-doctors.onrender.com/register"
