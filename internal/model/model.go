@@ -17,7 +17,7 @@ type GithubUser struct {
 	gorm.Model
 	Login       string `json:"login"`
 	Email       string `json:"email"`
-	AvatarUrl   string `json:"avatarUrl"`
+	AvatarUrl   string `json:"avatar_url"`
 	Followers   int    `json:"followers"`
 	Role        string `json:"role"`
 	AccessToken string `json:"-"`

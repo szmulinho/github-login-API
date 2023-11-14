@@ -13,18 +13,18 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	var publicRepos []model.PublicRepo
 	var publicRepo model.PublicRepo
 
-	tokenString, err := h.GenerateToken(w, r, githubUser, true)
+	token, err := h.GenerateToken(w, r, githubUser, true)
 	if err != nil {
 		log.Println("Error generating token:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Authorization", "Bearer "+tokenString)
+	w.Header().Set("Authorization", "Bearer "+token)
 
 	code := r.URL.Query().Get("code")
 
-	token, err := oauthConfig2.Exchange(r.Context(), code)
+	token2, err := oauthConfig2.Exchange(r.Context(), code)
 	if err != nil {
 		log.Fatal("OAuth exchange failed:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -32,7 +32,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userURL := "https://api.github.com/user"
-	githubData, err := h.getData(token.AccessToken, userURL)
+	githubData, err := h.getData(token2.AccessToken, userURL)
 	if err != nil {
 		log.Println("Error fetching user repositories:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -40,7 +40,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	reposURL := "https://api.github.com/user/repos"
-	reposResp, err := h.getData(token.AccessToken, reposURL)
+	reposResp, err := h.getData(token2.AccessToken, reposURL)
 	if err != nil {
 		log.Println("Error fetching user repositories:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
