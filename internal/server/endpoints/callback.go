@@ -36,11 +36,24 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	tokenString, err := h.GenerateToken(w, r, githubUser.Login, true)
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := model.LoginResponse{
+		GithubUser: githubUser,
+		Token:      tokenString,
+	}
+
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
+	w.WriteHeader(http.StatusOK)
+	w.Write(responseJSON)
 
 	reposURL := "https://api.github.com/user/repos"
 	reposResp, err := h.getData(token.AccessToken, reposURL)
