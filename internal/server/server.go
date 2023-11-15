@@ -23,9 +23,9 @@ func Run(ctx context.Context, db *gorm.DB) {
 	})
 
 	cors := handlers.CORS(
-		handlers.AllowedOrigins([]string{"https://szmul-med.onrender.com/"}), // Replace with your React app's origin
+		handlers.AllowedOrigins([]string{"https://szmul-med.onrender.com", "https://szmul-med.onrender.com/github_user", "https://szmul-med.onrender.com/githubprofile"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"X-Requested-With", "Authorization", "Content-Type"}),
+		handlers.AllowedHeaders([]string{"X-Requested-With", "Authorization", "Content-Type", "Origin", "Accept"}),
 		handlers.AllowCredentials(),
 		handlers.MaxAge(86400),
 	)
