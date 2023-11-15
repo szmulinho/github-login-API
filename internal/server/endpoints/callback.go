@@ -13,6 +13,8 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	var response model.Response
 	var publicRepos []model.PublicRepo
 	var publicRepo model.PublicRepo
+	var githubUser model.GithubUser
+	var githubUsers []model.GithubUser
 
 	code := r.URL.Query().Get("code")
 
@@ -143,16 +145,21 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	existingGithubUser := model.GithubUser{}
-	if err := h.db.Where("login = ?", newGithubUser.Login).First(&existingGithubUser).Error; err == nil {
-		h.Login(w, r)
-		return
-	}
-
-	err = h.db.Create(&newGithubUser).Error
-	if err != nil {
-		log.Println("Failed to save github user to database:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+	if err := h.db.Where("login = ?", githubUser.Login).First(&existingGithubUser).Error; err == nil {
+		existingGithubUser.AvatarUrl = existingGithubUser.AvatarUrl
+		err := h.db.Save(&existingGithubUser).Error
+		if err != nil {
+			log.Println("Failed to update Github User in database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		err := h.db.Create(&githubUser).Error
+		if err != nil {
+			log.Println("Failed to save public repository to database:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	githubUserJSON, err := json.Marshal(newGithubUser)
@@ -192,11 +199,9 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	defer respp.Body.Close()
 
-	if respp.StatusCode != http.StatusOK {
+	if res.StatusCode != http.StatusOK {
 		log.Println("Failed to login:", respp.StatusCode)
 		return
 	}
-
-	h.Login(w, r)
 
 }
