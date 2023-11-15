@@ -45,7 +45,6 @@ func (u *GithubUser) Value() (driver.Value, error) {
 
 type LoginResponse struct {
 	GithubUser GithubUser `json:"githubUser"`
-	Token      string     `json:"token"`
 }
 
 func (u *GithubUser) Scan(value interface{}) error {

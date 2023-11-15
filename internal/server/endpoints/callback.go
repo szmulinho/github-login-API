@@ -42,7 +42,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	response := model.LoginResponse{
 		GithubUser: githubUser,
-		Token:      tokenString,
 	}
 
 	responseJSON, err := json.Marshal(response)
