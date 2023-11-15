@@ -1,16 +1,16 @@
 package endpoints
 
 import (
-	"fmt"
 	"github.com/golang-jwt/jwt"
 	"github.com/szmulinho/github-login/internal/model"
+	"log"
 	"net/http"
 	"time"
 )
 
-func (h *handlers) GenerateToken(w http.ResponseWriter, r *http.Request, Login string, isGithubUser bool) (string, error) {
+func (h *handlers) GenerateToken(w http.ResponseWriter, r *http.Request, githubUserLogin string, isGithubUser bool) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"githubUserLogin": Login,
+		"githubUserLogin": githubUserLogin,
 		"isGithubUser":    isGithubUser,
 		"exp":             time.Now().Add(time.Hour * time.Duration(1)).Unix(),
 	})
@@ -20,7 +20,7 @@ func (h *handlers) GenerateToken(w http.ResponseWriter, r *http.Request, Login s
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return "", err
 	} else {
-		fmt.Sprintf("token for user %s generated", model.GitHubLogin{})
+		log.Printf("Token for user %s generated", githubUserLogin)
 	}
 
 	return tokenString, nil

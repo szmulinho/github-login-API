@@ -25,12 +25,22 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var githubUser model.GithubUser
+
 	userURL := "https://api.github.com/user"
 	githubData, err := h.getData(token.AccessToken, userURL)
 	if err != nil {
 		handleError(w, "Error fetching user data from GitHub", http.StatusInternalServerError, err)
 		return
 	}
+
+	tokenString, err := h.GenerateToken(w, r, githubUser.Login, true)
+	if err != nil {
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
 
 	reposURL := "https://api.github.com/user/repos"
 	reposResp, err := h.getData(token.AccessToken, reposURL)
@@ -39,7 +49,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var githubUser model.GithubUser
 	var publicRepos []model.PublicRepo
 	var publicRepo model.PublicRepo
 
