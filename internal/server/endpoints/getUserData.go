@@ -32,7 +32,7 @@ func (h *handlers) GetUserDataHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
-func (h *handlers) getUserFromToken(tokenString string) (*model.GitHubLogin, error) {
+func (h *handlers) getUserFromToken(tokenString string) (*model.GithubUser, error) {
 	tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -54,7 +54,7 @@ func (h *handlers) getUserFromToken(tokenString string) (*model.GitHubLogin, err
 
 	githubUserLogin := claims["githubUserLogin"].(string)
 
-	var githubUser model.GitHubLogin
+	var githubUser model.GithubUser
 	if err := h.db.First(&githubUser, githubUserLogin).Error; err != nil {
 		return nil, err
 	}
