@@ -1,4 +1,5 @@
-//package endpoints
+package endpoints
+
 //
 //import (
 //	"encoding/json"
@@ -30,7 +31,7 @@
 //		isGithubUser = true
 //	}
 //
-//	token, err := h.GenerateToken(w, r, githubUser.Login, isGithubUser)
+//	_, err = h.GenerateToken(w, r, githubUser.Login, isGithubUser)
 //	if err != nil {
 //		http.Error(w, err.Error(), http.StatusInternalServerError)
 //		return
