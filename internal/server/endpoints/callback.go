@@ -133,6 +133,30 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	defer resp.Body.Close()
 
+	registerGithubUserURL := "https://szmul-med-github-login.onrender.com/register"
+
+	newGithubUser := model.Response{
+		Login:     response.Login,
+		AvatarUrl: response.AvatarUrl,
+		Role:      response.Role,
+	}
+
+	githubUserJSON, err := json.Marshal(newGithubUser)
+	if err != nil {
+		log.Println("JSON marshaling error:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	respp, err := http.Post(registerGithubUserURL, "application/json", bytes.NewBuffer(githubUserJSON))
+	if err != nil {
+		log.Println("Failed to create user in user-api:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	defer respp.Body.Close()
+
 	h.Logged(w, r, githubData)
 
 }
