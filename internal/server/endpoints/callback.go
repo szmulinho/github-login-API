@@ -6,21 +6,13 @@ import (
 	"github.com/szmulinho/github-login/internal/model"
 	"log"
 	"net/http"
+	"net/url"
 )
 
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
-	var githubUser model.GithubUser
+	var response model.Response
 	var publicRepos []model.PublicRepo
 	var publicRepo model.PublicRepo
-
-	token, err := h.GenerateToken(w, r, githubUser, true)
-	if err != nil {
-		log.Println("Error generating token:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Authorization", "Bearer "+token)
 
 	code := r.URL.Query().Get("code")
 
@@ -47,7 +39,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
+	if err := json.Unmarshal([]byte(githubData), &response); err != nil {
 		log.Println("Error parsing GitHub data:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
@@ -68,14 +60,14 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if hasSzmulMedRepo {
-		githubUser.Role = "doctor"
+		response.Role = "doctor"
 	} else {
-		githubUser.Role = "user"
+		response.Role = "user"
 	}
 
-	existingUser := model.GithubUser{}
-	if err := h.db.Where("login = ?", githubUser.Login).First(&existingUser).Error; err == nil {
-		existingUser.Email = githubUser.Email
+	existingUser := model.Response{}
+	if err := h.db.Where("login = ?", response.Login).First(&existingUser).Error; err == nil {
+		existingUser.Email = response.Email
 		err := h.db.Save(&existingUser).Error
 		if err != nil {
 			log.Println("Failed to update github user in database:", err)
@@ -83,7 +75,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		err := h.db.Create(&githubUser).Error
+		err := h.db.Create(&response).Error
 		if err != nil {
 			log.Println("Failed to save user to database:", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -120,10 +112,10 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		registerAPIURL = "https://szmul-med-doctors.onrender.com/register"
 	}
 
-	newUser := model.GithubUser{
-		Login: githubUser.Login,
-		Email: githubUser.Email,
-		Role:  githubUser.Role,
+	newUser := model.Response{
+		Login: response.Login,
+		Email: response.Email,
+		Role:  response.Role,
 	}
 
 	userJSON, err := json.Marshal(newUser)
@@ -139,8 +131,72 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+
 	defer resp.Body.Close()
 
-	h.Logged(w, r, githubData)
+	registerGithubUserURL := "https://szmul-med-github-login.onrender.com/register"
+
+	newGithubUser := model.GithubUser{
+		Login:     response.Login,
+		AvatarUrl: response.AvatarUrl,
+		Role:      response.Role,
+	}
+
+	existingGithubUser := model.GithubUser{}
+	if err := h.db.Where("login = ?", newGithubUser.Login).First(&existingGithubUser).Error; err == nil {
+		h.Login(w, r)
+		return
+	}
+
+	err = h.db.Create(&newGithubUser).Error
+	if err != nil {
+		log.Println("Failed to save github user to database:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	githubUserJSON, err := json.Marshal(newGithubUser)
+	if err != nil {
+		log.Println("JSON marshaling error:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	res, err := http.Post(registerGithubUserURL, "application/json", bytes.NewBuffer(githubUserJSON))
+	if err != nil {
+		log.Println("Failed to create user in user-api:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	defer res.Body.Close()
+
+	loginURL := "https://szmul-med-github-login.onrender.com/user/login"
+
+	loginData := url.Values{}
+	loginData.Set("login", newGithubUser.Login)
+
+	req, err := http.NewRequest("POST", loginURL, bytes.NewBufferString(loginData.Encode()))
+	if err != nil {
+		log.Println("Failed to create login request:", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	respp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Println("Failed to send login request:", err)
+		return
+	}
+
+	defer respp.Body.Close()
+
+	if respp.StatusCode != http.StatusOK {
+		log.Println("Failed to login:", respp.StatusCode)
+		return
+	}
+
+	h.Login(w, r)
 
 }

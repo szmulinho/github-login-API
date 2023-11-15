@@ -14,6 +14,8 @@ type Handlers interface {
 	checkRepoAdminAccess(accessToken string, user model.GithubUser) bool
 	getData(accessToken, apiUrl string) (string, error)
 	Logged(w http.ResponseWriter, r *http.Request, githubData string)
+	Login(w http.ResponseWriter, r *http.Request)
+	Register(w http.ResponseWriter, r *http.Request)
 }
 
 type handlers struct {
