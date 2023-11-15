@@ -10,10 +10,10 @@ import (
 type GitHubLogin struct {
 	gorm.Model
 	PublicRepos []PublicRepo `gorm:"foreignKey:GitHubLoginID"`
-	Response    Response     `gorm:"foreignKey:GitHubLoginID"`
+	Response    GithubUser   `gorm:"foreignKey:GitHubLoginID"`
 }
 
-type Response struct {
+type GithubUser struct {
 	gorm.Model
 	Login       string `json:"login"`
 	Email       string `json:"email"`
@@ -23,18 +23,10 @@ type Response struct {
 	AccessToken string `json:"-"`
 }
 
-type GithubUser struct {
-	Login     string `json:"login"`
-	AvatarUrl string `json:"avatar_url"`
-	Role      string `json:"role"`
-}
-
 type User struct {
 	Login     string `json:"login"`
 	AvatarUrl string `json:"avatar_url"`
 	Role      string `json:"role"`
-	Followers int    `json:"followers"`
-	Email     string `json:"email"`
 }
 
 type PublicRepo struct {
@@ -47,7 +39,7 @@ type PublicRepo struct {
 
 var JwtKey = []byte(os.Getenv("JWT_KEY"))
 
-func (u *Response) Value() (driver.Value, error) {
+func (u *GithubUser) Value() (driver.Value, error) {
 	return json.Marshal(u)
 }
 
@@ -56,6 +48,6 @@ type LoginResponse struct {
 	Token      string     `json:"token"`
 }
 
-func (u *Response) Scan(value interface{}) error {
+func (u *GithubUser) Scan(value interface{}) error {
 	return json.Unmarshal(value.([]byte), u)
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
-	var response model.Response
+	var githubUser model.GithubUser
 	var publicRepos []model.PublicRepo
 	var publicRepo model.PublicRepo
 
@@ -38,7 +38,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.Unmarshal([]byte(githubData), &response); err != nil {
+	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
 		log.Println("Error parsing GitHub data:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
@@ -59,14 +59,14 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if hasSzmulMedRepo {
-		response.Role = "doctor"
+		githubUser.Role = "doctor"
 	} else {
-		response.Role = "user"
+		githubUser.Role = "user"
 	}
 
-	existingUser := model.Response{}
-	if err := h.db.Where("login = ?", response.Login).First(&existingUser).Error; err == nil {
-		existingUser.Email = response.Email
+	existingUser := model.GithubUser{}
+	if err := h.db.Where("login = ?", githubUser.Login).First(&existingUser).Error; err == nil {
+		existingUser.Email = githubUser.Email
 		err := h.db.Save(&existingUser).Error
 		if err != nil {
 			log.Println("Failed to update github user in database:", err)
@@ -74,7 +74,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		err := h.db.Create(&response).Error
+		err := h.db.Create(&githubUser).Error
 		if err != nil {
 			log.Println("Failed to save user to database:", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -111,10 +111,10 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		registerAPIURL = "https://szmul-med-doctors.onrender.com/register"
 	}
 
-	newUser := model.Response{
-		Login: response.Login,
-		Email: response.Email,
-		Role:  response.Role,
+	newUser := model.GithubUser{
+		Login: githubUser.Login,
+		Email: githubUser.Email,
+		Role:  githubUser.Role,
 	}
 
 	userJSON, err := json.Marshal(newUser)
