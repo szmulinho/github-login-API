@@ -14,7 +14,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	var publicRepos []model.PublicRepo
 	var publicRepo model.PublicRepo
 	var githubUser model.GithubUser
-	var githubUsers []model.GithubUser
 
 	code := r.URL.Query().Get("code")
 
@@ -203,5 +202,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		log.Println("Failed to login:", respp.StatusCode)
 		return
 	}
+
+	h.Logged(w, r, githubData)
 
 }
