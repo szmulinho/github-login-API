@@ -16,10 +16,11 @@ func Run(ctx context.Context, db *gorm.DB) {
 	router.HandleFunc("/login", handler.HandleLogin)
 	router.HandleFunc("/callback", handler.HandleCallback)
 	router.HandleFunc("/register", handler.Register).Methods("POST")
-	router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get("Authorization")
-		handler.GetUserDataHandler(w, r, tokenString)
-	})
+	router.HandleFunc("/user", handler.GetUserDataHandler).Methods("GET")
+	//router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
+	//	tokenString := r.Header.Get("Authorization")
+	//	handler.GetUserDataHandler(w, r, tokenString)
+	//})
 	//router.HandleFunc("/user/login", handler.Login).Methods("POST")
 	http.HandleFunc("/logged", func(w http.ResponseWriter, r *http.Request) {
 		endpoints.Handlers.Logged(handler, w, r, "")

@@ -40,7 +40,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.GetUserDataHandler(w, r, tokenString)
+	//h.GetUserDataHandler(w, r, tokenString)
 
 	response := model.LoginResponse{
 		GithubUser: githubUser,
