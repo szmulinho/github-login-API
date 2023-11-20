@@ -35,7 +35,7 @@ func Run(ctx context.Context, db *gorm.DB) {
 		corsRouter := cors(router)
 
 		go func() {
-			err := http.ListenAndServe(":10000", corsRouter)
+			err := http.ListenAndServe("localhost:8086", corsRouter)
 			if err != nil {
 				log.Fatal(err)
 			}
