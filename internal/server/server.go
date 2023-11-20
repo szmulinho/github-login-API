@@ -16,11 +16,10 @@ func Run(ctx context.Context, db *gorm.DB) {
 	router.HandleFunc("/login", handler.HandleLogin)
 	router.HandleFunc("/callback", handler.HandleCallback)
 	router.HandleFunc("/register", handler.Register).Methods("POST")
-	router.HandleFunc("/user", handler.GetUserDataHandler).Methods("GET")
-	//router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
-	//	tokenString := r.Header.Get("Authorization")
-	//	handler.GetUserDataHandler(w, r, tokenString)
-	//})
+	router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
+		tokenString := r.Header.Get("Authorization")
+		handler.GetUserDataHandler(w, r, tokenString)
+	})
 	//router.HandleFunc("/user/login", handler.Login).Methods("POST")
 	http.HandleFunc("/logged", func(w http.ResponseWriter, r *http.Request) {
 		endpoints.Handlers.Logged(handler, w, r, "")
@@ -36,7 +35,7 @@ func Run(ctx context.Context, db *gorm.DB) {
 		corsRouter := cors(router)
 
 		go func() {
-			err := http.ListenAndServe(":8086", corsRouter)
+			err := http.ListenAndServe(":443", corsRouter)
 			if err != nil {
 				log.Fatal(err)
 			}

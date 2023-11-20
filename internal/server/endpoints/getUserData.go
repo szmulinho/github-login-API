@@ -10,10 +10,9 @@ import (
 	"strings"
 )
 
-func (h *handlers) GetUserDataHandler(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("Authorization")
+func (h *handlers) GetUserDataHandler(w http.ResponseWriter, r *http.Request, tokenString string) {
 
-	githubUser, err := h.getUserFromToken(token)
+	githubUser, err := h.getUserFromToken(tokenString)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
