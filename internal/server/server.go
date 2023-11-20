@@ -15,29 +15,32 @@ func Run(ctx context.Context, db *gorm.DB) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", handler.HandleLogin)
 	router.HandleFunc("/callback", handler.HandleCallback)
-	router.HandleFunc("/user", handler.GetUserDataHandler).Methods("GET")
-	router.HandleFunc("/register", handler.Register).Methods("POST")
-	//router.HandleFunc("/user/login", handler.Login).Methods("POST")
-	http.HandleFunc("/logged", func(w http.ResponseWriter, r *http.Request) {
-		endpoints.Handlers.Logged(handler, w, r, "")
+	router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
+		tokenString := r.Header.Get("Authorization")
+		handler.GetUserDataHandler(w, r, tokenString)
+		router.HandleFunc("/register", handler.Register).Methods("POST")
+		//router.HandleFunc("/user/login", handler.Login).Methods("POST")
+		http.HandleFunc("/logged", func(w http.ResponseWriter, r *http.Request) {
+			endpoints.Handlers.Logged(handler, w, r, "")
+		})
+
+		cors := handlers.CORS(
+			handlers.AllowedOrigins([]string{"https://szmul-med.onrender.com", "https://szmul-med.onrender.com/github_user", "https://szmul-med.onrender.com/githubprofile"}),
+			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),
+			handlers.AllowedHeaders([]string{"X-Requested-With", "Authorization", "Content-Type", "Origin", "Accept"}),
+			handlers.AllowCredentials(),
+			handlers.MaxAge(86400),
+		)
+
+		corsRouter := cors(router)
+
+		go func() {
+			err := http.ListenAndServe(":8086", corsRouter)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}()
+
+		<-ctx.Done()
 	})
-
-	cors := handlers.CORS(
-		handlers.AllowedOrigins([]string{"https://szmul-med.onrender.com", "https://szmul-med.onrender.com/github_user", "https://szmul-med.onrender.com/githubprofile"}),
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"X-Requested-With", "Authorization", "Content-Type", "Origin", "Accept"}),
-		handlers.AllowCredentials(),
-		handlers.MaxAge(86400),
-	)
-
-	corsRouter := cors(router)
-
-	go func() {
-		err := http.ListenAndServe(":8086", corsRouter)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	<-ctx.Done()
 }
