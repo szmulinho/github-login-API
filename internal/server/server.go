@@ -32,10 +32,8 @@ func Run(ctx context.Context, db *gorm.DB) {
 			handlers.MaxAge(86400),
 		)
 
-		corsRouter := cors(router)
-
 		go func() {
-			err := http.ListenAndServe("localhost:8086", corsRouter)
+			err := http.ListenAndServe(":8086", cors(router))
 			if err != nil {
 				log.Fatal(err)
 			}
