@@ -21,7 +21,6 @@ func Run(ctx context.Context, db *gorm.DB) {
 		tokenString := r.Header.Get("Authorization")
 		handler.GetUserDataHandler(w, r, tokenString)
 	})
-	//router.HandleFunc("/user/login", handler.Login).Methods("POST")
 	http.HandleFunc("/logged", func(w http.ResponseWriter, r *http.Request) {
 		endpoints.Handlers.Logged(handler, w, r, "")
 
