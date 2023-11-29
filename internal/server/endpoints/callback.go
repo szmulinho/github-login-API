@@ -34,14 +34,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenString, err := h.GenerateToken(w, r, githubUser.Login, true)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	h.GetUserDataHandler(w, r, tokenString)
-
 	response := model.LoginResponse{
 		GithubUser: githubUser,
 	}
@@ -56,19 +48,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(responseJSON)
 
-	tokenResponse := struct {
-		Token string `json:"token"`
-	}{
-		Token: tokenString,
-	}
-
-	tokenJSON, err := json.Marshal(tokenResponse)
-	if err != nil {
-		handleError(w, "JSON marshaling error", http.StatusInternalServerError, err)
-		return
-	}
-
-	w.Write(tokenJSON)
 
 	reposURL := "https://api.github.com/user/repos"
 	reposResp, err := h.getData(token.AccessToken, reposURL)
