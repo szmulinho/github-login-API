@@ -2,41 +2,46 @@ package config
 
 import (
 	"fmt"
+	"github.com/joho/godotenv"
 	"os"
 )
 
-func LoadFromEnv() StorageConfig {
-	DB_HOST := os.Getenv("DB_HOST")
-	DB_USER := os.Getenv("DB_USER")
-	DB_PASSWORD := os.Getenv("DB_PASSWORD")
-	DB_NAME := os.Getenv("DB_NAME")
-	DB_PORT := os.Getenv("DB_PORT")
+func LoadConfigFromEnv() StorageConfig {
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Error loading .env file")
+	}
 
-	fmt.Printf("DB_HOST: %s\n", DB_HOST)
-	fmt.Printf("DB_USER: %s\n", DB_USER)
-	fmt.Printf("DB_PASSWORD: %s\n", DB_PASSWORD)
-	fmt.Printf("DB_NAME: %s\n", DB_NAME)
-	fmt.Printf("DB_PORT: %s\n", DB_PORT)
+	host := os.Getenv("DB_HOST")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+	port := os.Getenv("DB_PORT")
+
+	fmt.Printf("Host: %s\n", host)
+	fmt.Printf("User: %s\n", user)
+	fmt.Printf("Password: %s\n", password)
+	fmt.Printf("DBName: %s\n", dbname)
+	fmt.Printf("Port: %s\n", port)
 
 	return StorageConfig{
-		DB_HOST:     DB_HOST,
-		DB_USER:     DB_USER,
-		DB_PASSWORD: DB_PASSWORD,
-		DB_NAME:     DB_NAME,
-		DB_PORT:     DB_PORT,
+		Host:     host,
+		User:     user,
+		Password: password,
+		Dbname:   dbname,
+		Port:     port,
 	}
 }
 
 type StorageConfig struct {
-	DB_HOST     string `json:"DB_HOST"`
-	DB_USER     string `json:"DB_USER"`
-	DB_PASSWORD string `json:"DB_PASSWORD"`
-	DB_NAME     string `json:"DB_NAME"`
-	DB_PORT     string `json:"DB_PORT"`
+	Host     string `json:"host"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Dbname   string `json:"dbname"`
+	Port     string `json:"port"`
 }
 
 func (c StorageConfig) ConnectionString() string {
-	connectionString := fmt.Sprintf("DB_HOST=%s\n DB_USER=%s\n DB_PASSWORD=%s\n DB_NAME=%s\n DB_PORT=%s\n",
-		c.DB_HOST, c.DB_USER, c.DB_PASSWORD, c.DB_NAME, c.DB_PORT)
+	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		c.Host, c.User, c.Password, c.Dbname, c.Port)
 	return connectionString
 }
