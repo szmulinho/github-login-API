@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/szmulinho/common/utils"
 	"github.com/szmulinho/github-login/internal/database"
 	"github.com/szmulinho/github-login/internal/server"
+	"github.com/szmulinho/github-login/internal/utils"
 	"log"
 )
 
