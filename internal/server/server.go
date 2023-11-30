@@ -16,13 +16,6 @@ func Run(ctx context.Context, db *gorm.DB) {
 	router.HandleFunc("/login", handler.HandleLogin)
 	router.HandleFunc("/callback", handler.HandleCallback)
 	router.HandleFunc("/register", handler.Register).Methods("POST")
-	router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get("Authorization")
-		handler.GetUserDataHandler(w, r, tokenString)
-	})
-	http.HandleFunc("/logged", func(w http.ResponseWriter, r *http.Request) {
-		endpoints.Handlers.Logged(handler, w, r, "")
-
 		cors := handlers.CORS(
 			handlers.AllowedOrigins([]string{"https://szmul-med.onrender.com", "https://szmul-med.onrender.com/github_user", "https://szmul-med.onrender.com/githubprofile"}),
 			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),
