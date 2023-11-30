@@ -15,7 +15,9 @@ func Run(ctx context.Context, db *gorm.DB) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", handler.HandleLogin)
 	router.HandleFunc("/callback", handler.HandleCallback)
-	router.HandleFunc("/register", handler.Register).Methods("POST")
+	router.HandleFunc("/register", handler.RegisterUser).Methods("POST")
+	router.HandleFunc("/register_doctor", handler.RegisterDoctor).Methods("POST")
+	router.HandleFunc("/user", handler.GetUserData).Methods("GET")
 		cors := handlers.CORS(
 			handlers.AllowedOrigins([]string{"https://szmul-med.onrender.com", "https://szmul-med.onrender.com/github_user", "https://szmul-med.onrender.com/githubprofile"}),
 			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),

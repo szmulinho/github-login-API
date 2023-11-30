@@ -1,30 +1,26 @@
 package endpoints
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 )
 
-func (h *handlers) Logged(w http.ResponseWriter, r *http.Request, githubData, reposData string) {
+func (h *handlers) Logged(w http.ResponseWriter, r *http.Request, githubData string) {
 	if githubData == "" {
-		http.Error(w, "UNAUTHORIZED!", http.StatusUnauthorized)
+		fmt.Fprintf(w, "UNAUTHORIZED!")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-type", "application/json")
 
-	responseData := map[string]string{
-		"githubData": githubData,
-		"reposData":  reposData,
+	var prettyJSON bytes.Buffer
+	parserr := json.Indent(&prettyJSON, []byte(githubData), "", "\t")
+	if parserr != nil {
+		log.Panic("JSON parse error")
 	}
 
-	jsonData, err := json.MarshalIndent(responseData, "", "\t")
-	if err != nil {
-		log.Println("JSON parse error:", err)
-		http.Error(w, "Failed to format JSON response", http.StatusInternalServerError)
-		return
-	}
-
-	w.Write(jsonData)
+	fmt.Fprintf(w, string(prettyJSON.Bytes()))
 }

@@ -20,8 +20,16 @@ type GithubUser struct {
 
 type User struct {
 	Login     string `json:"login"`
+	Email	string `json:"email"`
 	AvatarUrl string `json:"avatar_url"`
 	Role      string `json:"role"`
+}
+
+type Doctor struct {
+	Login	string `json:"login"`
+	Email string	`json:"email"`
+	AvatarUrl string  `json:"avatarUrl"`
+	Role string `json:"role"`
 }
 
 type PublicRepo struct {

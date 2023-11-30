@@ -1,32 +1,32 @@
 package endpoints
 
 import (
-	"fmt"
-	"io/ioutil"
-	"log"
+	"encoding/json"
+	"github.com/szmulinho/github-login/internal/model"
 	"net/http"
 )
 
-func (h *handlers)getUserData(accessToken string, endpoint string) string {
-
-	req, reqerr := http.NewRequest(
-		"GET",
-		fmt.Sprintf("https://api.github.com/user/%s", endpoint),
-		nil,
-	)
-	if reqerr != nil {
-		log.Panic("API Request creation failed")
+func (h *handlers) GetUserData(w http.ResponseWriter, r *http.Request) {
+	login := r.URL.Query().Get("login")
+	if login == "" {
+		http.Error(w, "Missing user login parameter", http.StatusBadRequest)
+		return
 	}
 
-	authorizationHeaderValue := fmt.Sprintf("token %s", accessToken)
-	req.Header.Set("Authorization", authorizationHeaderValue)
+	var userData model.GithubUser
 
-	resp, resperr := http.DefaultClient.Do(req)
-	if resperr != nil {
-		log.Panic("Request failed")
+	if err := h.db.Where("login = ?", login).First(&userData).Error; err != nil {
+		http.Error(w, "Error fetching user data from the database", http.StatusInternalServerError)
+		return
 	}
 
-	respbody, _ := ioutil.ReadAll(resp.Body)
+	responseJSON, err := json.Marshal(userData)
+	if err != nil {
+		http.Error(w, "Error marshaling user data to JSON", http.StatusInternalServerError)
+		return
+	}
 
-	return string(respbody)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(responseJSON)
 }

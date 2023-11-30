@@ -8,8 +8,10 @@ import (
 type Handlers interface {
 	HandleLogin(w http.ResponseWriter, r *http.Request)
 	HandleCallback(w http.ResponseWriter, r *http.Request)
-	Logged(w http.ResponseWriter, r *http.Request, githubData, reposData string)
-	Register(w http.ResponseWriter, r *http.Request)
+	Logged(w http.ResponseWriter, r *http.Request, githubData string)
+	RegisterDoctor(w http.ResponseWriter, r *http.Request)
+	RegisterUser(w http.ResponseWriter, r *http.Request)
+	GetUserData(w http.ResponseWriter, r *http.Request)
 }
 
 type handlers struct {
