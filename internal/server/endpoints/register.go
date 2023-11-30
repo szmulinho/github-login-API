@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/szmulinho/github-login/internal/model"
@@ -66,7 +67,14 @@ func (h *handlers) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	w.Write(userJSON)
+}
+
+func handleError(w http.ResponseWriter, errMsg string, status int, err error) {
+	log.Printf("%s: %v", errMsg, err)
+	http.Error(w, errMsg, status)
 }

@@ -14,3 +14,5 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	h.Logged(w, r, githubData, reposData)
 }
+
+
