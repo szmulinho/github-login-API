@@ -31,5 +31,4 @@ func Run(ctx context.Context, db *gorm.DB) {
 			}
 		}()
 		<-ctx.Done()
-	})
-}
+	}
