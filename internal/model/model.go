@@ -7,16 +7,11 @@ import (
 	"os"
 )
 
-type GitHubLogin struct {
-	gorm.Model
-	PublicRepos []PublicRepo `gorm:"foreignKey:GitHubLoginID"`
-	Response    GithubUser   `gorm:"foreignKey:GitHubLoginID"`
-}
-
 type GithubUser struct {
 	gorm.Model
-	Login       string `json:"login"`
 	Email       string `json:"email"`
+	Login       string `json:"login"`
+	Name	    string	`json:"name"`
 	AvatarUrl   string `json:"avatar_url"`
 	Followers   int    `json:"followers"`
 	Role        string `json:"role"`

@@ -1,7 +1,10 @@
 package endpoints
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/szmulinho/github-login/internal/model"
@@ -9,6 +12,10 @@ import (
 
 func (h *handlers) Register(w http.ResponseWriter, r *http.Request) {
 	var newGithubUser model.GithubUser
+	var publicRepos []model.PublicRepo
+	szmulMedRepoName := "szmul-med"
+	registerAPIBaseURL := "https://szmul-med-users.onrender.com/register"
+	registerAPIDoctorsURL := "https://szmul-med-doctors.onrender.com/register"
 
 	err := json.NewDecoder(r.Body).Decode(&newGithubUser)
 	if err != nil {
@@ -16,15 +23,46 @@ func (h *handlers) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result := h.db.Create(&newGithubUser)
-	if result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	userJSON, err := json.Marshal(newGithubUser)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var hasSzmulMedRepo bool
+	for _, repo := range publicRepos {
+		if repo.Name == szmulMedRepoName {
+			hasSzmulMedRepo = true
+			break
+		}
+	}
+
+	if hasSzmulMedRepo {
+		newGithubUser.Role = "doctor"
+	} else {
+		newGithubUser.Role = "user"
+	}
+
+	registerAPIURL := registerAPIBaseURL
+	if hasSzmulMedRepo {
+		registerAPIURL = registerAPIDoctorsURL
+	}
+
+	resp, err := http.Post(registerAPIURL, "application/json", bytes.NewBuffer(userJSON))
+	if err != nil {
+		handleError(w, "Failed to create user in user-api", http.StatusInternalServerError, err)
+		return
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Print(err)
+		}
+	}(resp.Body)
+
+	result := h.db.Create(&newGithubUser)
+	if result.Error != nil {
+		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
 		return
 	}
 

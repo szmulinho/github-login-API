@@ -1,20 +1,11 @@
 package endpoints
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
-	"io"
 	"log"
 	"net/http"
 
 	"github.com/szmulinho/github-login/internal/model"
-)
-
-var (
-	szmulMedRepoName      = "szmul-med"
-	registerAPIBaseURL    = "https://szmul-med-users.onrender.com/register"
-	registerAPIDoctorsURL = "https://szmul-med-doctors.onrender.com/register"
 )
 
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +53,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var publicRepos []model.PublicRepo
-	var publicRepo model.PublicRepo
 
 	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
 		handleError(w, "Error parsing GitHub data", http.StatusInternalServerError, err)
@@ -73,59 +63,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "Error parsing GitHub repositories data", http.StatusInternalServerError, err)
 		return
 	}
-
-	var hasSzmulMedRepo bool
-	for _, repo := range publicRepos {
-		if repo.Name == szmulMedRepoName {
-			hasSzmulMedRepo = true
-			break
-		}
-	}
-
-	if hasSzmulMedRepo {
-		githubUser.Role = "doctor"
-	} else {
-		githubUser.Role = "user"
-	}
-
-	if err := h.updateOrCreateGitHubUser(h.db, githubUser); err != nil {
-		handleError(w, "Failed to update/create GitHub user in the database", http.StatusInternalServerError, err)
-		return
-	}
-
-	if err := h.updateOrCreatePublicRepo(h.db, publicRepo); err != nil {
-		handleError(w, "Failed to update/create public repository in the database", http.StatusInternalServerError, err)
-		return
-	}
-
-	registerAPIURL := registerAPIBaseURL
-	if hasSzmulMedRepo {
-		registerAPIURL = registerAPIDoctorsURL
-	}
-
-	newUser := model.GithubUser{
-		Login: githubUser.Login,
-		Email: githubUser.Email,
-		Role:  githubUser.Role,
-	}
-
-	userJSON, err := json.Marshal(newUser)
-	if err != nil {
-		handleError(w, "JSON marshaling error", http.StatusInternalServerError, err)
-		return
-	}
-
-	resp, err := http.Post(registerAPIURL, "application/json", bytes.NewBuffer(userJSON))
-	if err != nil {
-		handleError(w, "Failed to create user in user-api", http.StatusInternalServerError, err)
-		return
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			fmt.Print(err)
-		}
-	}(resp.Body)
 
 	h.Logged(w, r, githubData)
 }
