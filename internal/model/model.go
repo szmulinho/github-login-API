@@ -46,10 +46,6 @@ func (u *GithubUser) Value() (driver.Value, error) {
 	return json.Marshal(u)
 }
 
-type LoginResponse struct {
-	GithubUser GithubUser `json:"githubUser"`
-}
-
 func (u *GithubUser) Scan(value interface{}) error {
 	return json.Unmarshal(value.([]byte), u)
 }

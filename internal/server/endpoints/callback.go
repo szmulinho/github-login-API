@@ -12,6 +12,7 @@ const (
 	szmulMedRepoName      = "szmul-med"
 )
 
+
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 

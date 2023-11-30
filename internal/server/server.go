@@ -16,10 +16,6 @@ func Run(ctx context.Context, db *gorm.DB) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", handler.HandleLogin)
 	router.HandleFunc("/callback", handler.HandleCallback)
-	router.HandleFunc("/register", handler.RegisterUser).Methods("POST")
-	router.HandleFunc("/register_doctor", handler.RegisterDoctor).Methods("POST")
-	router.HandleFunc("/user", handler.GetUserData).Methods("GET")
-
 	port := os.Getenv("SERVER_PORT")
 	if port == "" {
 		port = "8086" // Default port if not provided
