@@ -41,7 +41,7 @@ type StorageConfig struct {
 }
 
 func (c StorageConfig) ConnectionString() string {
-	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s",
 		c.Host, c.User, c.Password, c.Dbname, c.Port)
 	return connectionString
 }
