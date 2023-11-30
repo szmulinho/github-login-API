@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"net/http"
+	"os"
 )
 
 func Run(ctx context.Context, db *gorm.DB) {
@@ -18,19 +19,26 @@ func Run(ctx context.Context, db *gorm.DB) {
 	router.HandleFunc("/register", handler.RegisterUser).Methods("POST")
 	router.HandleFunc("/register_doctor", handler.RegisterDoctor).Methods("POST")
 	router.HandleFunc("/user", handler.GetUserData).Methods("GET")
-		cors := handlers.CORS(
-			handlers.AllowedOrigins([]string{"https://szmul-med.onrender.com", "https://szmul-med.onrender.com/github_user", "https://szmul-med.onrender.com/githubprofile"}),
-			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),
-			handlers.AllowedHeaders([]string{"X-Requested-With", "Authorization", "Content-Type", "Origin", "Accept"}),
-			handlers.AllowCredentials(),
-			handlers.MaxAge(86400),
-		)
 
-		go func() {
-			err := http.ListenAndServe(":8086", cors(router))
-			if err != nil {
-				log.Fatal(err)
-			}
-		}()
-		<-ctx.Done()
+	port := os.Getenv("SERVER_PORT")
+	if port == "" {
+		port = "8086" // Default port if not provided
 	}
+
+	cors := handlers.CORS(
+		handlers.AllowedOrigins([]string{"https://szmul-med.onrender.com", "https://szmul-med.onrender.com/github_user", "https://szmul-med.onrender.com/githubprofile"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),
+		handlers.AllowedHeaders([]string{"X-Requested-With", "Authorization", "Content-Type", "Origin", "Accept"}),
+		handlers.AllowCredentials(),
+		handlers.MaxAge(86400),
+	)
+
+	go func() {
+		err := http.ListenAndServe(":"+port, cors(router))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	<-ctx.Done()
+}
