@@ -3,13 +3,15 @@ package endpoints
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 
 	"github.com/szmulinho/github-login/internal/model"
 )
 
-const (
+var (
 	szmulMedRepoName      = "szmul-med"
 	registerAPIBaseURL    = "https://szmul-med-users.onrender.com/register"
 	registerAPIDoctorsURL = "https://szmul-med-doctors.onrender.com/register"
@@ -46,7 +48,10 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(responseJSON)
+	_, err = w.Write(responseJSON)
+	if err != nil {
+		return
+	}
 
 
 	reposURL := "https://api.github.com/user/repos"
@@ -115,7 +120,12 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "Failed to create user in user-api", http.StatusInternalServerError, err)
 		return
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Print(err)
+		}
+	}(resp.Body)
 
 	h.Logged(w, r, githubData)
 }
