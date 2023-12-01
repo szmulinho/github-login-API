@@ -12,7 +12,7 @@ import (
 
 func wait(ctx context.Context, wg *sync.WaitGroup) {
 	<-ctx.Done()
-	timeout := time.Hour
+	timeout := time.Minute
 	start := time.Now()
 	waited := make(chan struct{})
 	go func() {

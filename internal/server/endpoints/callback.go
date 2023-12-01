@@ -16,7 +16,7 @@ const (
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 
-	token, err := oauthConfig.Exchange(r.Context(), code)
+	token, err := Config.Exchange(r.Context(), code)
 	if err != nil {
 		http.Error(w, "Failed to exchange code for token", http.StatusBadRequest)
 		log.Println("Error exchanging code for token:", err)

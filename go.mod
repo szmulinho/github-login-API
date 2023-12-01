@@ -6,6 +6,7 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.5.1
+	github.com/szmulinho/common v0.0.0-20231111121356-88d341d86721
 	golang.org/x/oauth2 v0.13.0
 	gorm.io/driver/postgres v1.5.3
 	gorm.io/gorm v1.25.5
