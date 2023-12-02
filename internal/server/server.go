@@ -18,7 +18,7 @@ func Run(ctx context.Context, db *gorm.DB) {
 	router.HandleFunc("/callback", handler.HandleCallback)
 	port := os.Getenv("SERVER_PORT")
 	if port == "" {
-		port = "443" // Default port if not provided
+		port = "10000" // Default port if not provided
 	}
 
 	cors := handlers.CORS(
