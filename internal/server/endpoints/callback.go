@@ -39,7 +39,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	var githubUser model.GithubUser
 	var publicRepos []model.PublicRepo
-	var publicRepo model.PublicRepo
 
 	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
 		handleError(w, "Error parsing GitHub data", http.StatusInternalServerError, err)
@@ -68,11 +67,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.updateOrCreateGitHubUser(h.db, githubUser); err != nil {
 		handleError(w, "Failed to update/create GitHub user in the database", http.StatusInternalServerError, err)
-		return
-	}
-
-	if err := h.updateOrCreatePublicRepo(h.db, publicRepo); err != nil {
-		handleError(w, "Failed to update/create public repository in the database", http.StatusInternalServerError, err)
 		return
 	}
 
