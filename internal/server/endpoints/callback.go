@@ -65,6 +65,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		githubUser.Role = "user"
 	}
 
+
 	if err := h.updateOrCreateGitHubUser(h.db, githubUser); err != nil {
 		handleError(w, "Failed to update/create GitHub user in the database", http.StatusInternalServerError, err)
 		return
