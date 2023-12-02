@@ -4,43 +4,26 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"gorm.io/gorm"
-	"os"
 )
 
 type GithubUser struct {
 	gorm.Model
 	Email       string `json:"email"`
 	Login       string `json:"login"`
-	Name	    string	`json:"name"`
+	Name	    string  `json:"name"`
 	AvatarUrl   string `json:"avatar_url"`
 	Followers   int    `json:"followers"`
 	Role        string `json:"role"`
 	AccessToken string `json:"-"`
 }
 
-type User struct {
-	Login     string `json:"login"`
-	Email	string `json:"email"`
-	AvatarUrl string `json:"avatar_url"`
-	Role      string `json:"role"`
-}
-
-type Doctor struct {
-	Login	string `json:"login"`
-	Email string	`json:"email"`
-	AvatarUrl string  `json:"avatarUrl"`
-	Role string `json:"role"`
-}
-
 type PublicRepo struct {
 	gorm.Model
-	GitHubLoginID uint   `gorm:"foreignKey"`
-	ID            int    `json:"id"`
+	GitHubLoginID uint   `gorm:"foreignKey" json:"gitHubLoginID"`
+	ID            uint   `json:"id" gorm:"primaryKey;autoIncrement"`
 	Name          string `json:"name"`
 	Description   string `json:"description"`
 }
-
-var JwtKey = []byte(os.Getenv("JWT_KEY"))
 
 func (u *GithubUser) Value() (driver.Value, error) {
 	return json.Marshal(u)

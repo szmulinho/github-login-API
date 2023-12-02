@@ -5,7 +5,6 @@ import (
 	"github.com/szmulinho/github-login/internal/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 func Migrate(db *gorm.DB) error {
@@ -22,9 +21,7 @@ func Connect() (*gorm.DB, error) {
 	conn := config.LoadFromEnv()
 	connectionString := conn.ConnectionString()
 
-	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-	})
+	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
