@@ -11,6 +11,7 @@ FROM alpine:latest
 
 WORKDIR /github-login
 COPY --from=build /github-login/github-login /github-login/github-login
+COPY .env /github-login/.env
 
 EXPOSE 8086
 
