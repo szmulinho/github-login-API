@@ -8,7 +8,7 @@ import (
 func (h *handlers) updateOrCreateGitHubUser(db *gorm.DB, githubUser model.GithubUser) error {
 	existingUser := model.GithubUser{}
 	if err := db.Where("login = ?", githubUser.Login).First(&existingUser).Error; err == nil {
-		existingUser.Email = githubUser.Email
+		existingUser.Login = githubUser.Login
 		return db.Save(&existingUser).Error
 	}
 	return db.Create(&githubUser).Error

@@ -7,14 +7,10 @@ import (
 )
 
 type GithubUser struct {
-	gorm.Model
-	Email       string `json:"email"`
-	Login       string `json:"login"`
-	Name	    string  `json:"name"`
-	AvatarUrl   string `json:"avatar_url"`
-	Followers   int    `json:"followers"`
-	Role        string `json:"role"`
-	AccessToken string `json:"-"`
+	Login       string `json:"login" gorm:"index"`
+	AvatarUrl   string `json:"avatar_url" gorm:"index"`
+	Role        string `json:"role" gorm:"index"`
+	AccessToken string `json:"-" gorm:"index"`
 }
 
 type PublicRepo struct {
