@@ -8,6 +8,8 @@ import (
 	"github.com/szmulinho/github-login/internal/model"
 )
 
+var githubUser model.GhUser
+var publicRepos []model.PublicRepo
 
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
@@ -19,28 +21,25 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userURL := "https://api.github.com/user"
-	githubData, err := h.getData(token.AccessToken, userURL)
+	userData, err := h.getData(token.AccessToken, userURL)
 	if err != nil {
 		http.Error(w, "Error fetching user data from GitHub", http.StatusInternalServerError)
 		return
 	}
 
 	reposURL := "https://api.github.com/user/repos"
-	reposResp, err := h.getData(token.AccessToken, reposURL)
+	reposData, err := h.getData(token.AccessToken, reposURL)
 	if err != nil {
 		http.Error(w, "Error fetching user repositories", http.StatusInternalServerError)
 		return
 	}
 
-	var githubUser model.GhUser
-	var publicRepos []model.PublicRepo
-
-	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
+	if err := json.Unmarshal([]byte(userData), &githubUser); err != nil {
 		http.Error(w, "Error parsing GitHub data", http.StatusInternalServerError)
 		return
 	}
 
-	if err := json.Unmarshal([]byte(reposResp), &publicRepos); err != nil {
+	if err := json.Unmarshal([]byte(reposData), &publicRepos); err != nil {
 		http.Error(w, "Error parsing GitHub repositories data", http.StatusInternalServerError)
 		return
 	}
@@ -71,7 +70,7 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	githubData = string(updatedGithubData)
+	userData = string(updatedGithubData)
 
-	h.Logged(w, r, githubData)
+	h.Logged(w, r, userData)
 }

@@ -23,3 +23,5 @@ func (u *GhUser) Value() (driver.Value, error) {
 func (u *GhUser) Scan(value interface{}) error {
 	return json.Unmarshal(value.([]byte), u)
 }
+
+
