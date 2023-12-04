@@ -41,12 +41,12 @@ type StorageConfig struct {
 	Password string `json:"password"`
 	Dbname   string `json:"dbname"`
 	Port    string `json:"port"`
-	SslMode string `json:"ssl_mode"`
+	SslMode string `json:"sslmode"`
 
 }
 
 func (c StorageConfig) ConnectionString() string {
-	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s ssl_mode=%s",
+	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		c.Host, c.User, c.Password, c.Dbname, c.Port, c.SslMode)
 	return connectionString
 }
