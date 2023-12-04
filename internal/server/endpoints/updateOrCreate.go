@@ -5,20 +5,20 @@ import (
 	"gorm.io/gorm"
 )
 
-func (h *handlers) updateOrCreateGitHubUser(db *gorm.DB, githubUser model.GithubUser) error {
-	existingUser := model.GithubUser{}
+func updateOrCreateGitHubUser(db *gorm.DB, githubUser model.GhUser) error {
+	existingUser := model.GhUser{}
 	if err := db.Where("login = ?", githubUser.Login).First(&existingUser).Error; err == nil {
-		existingUser.Login = githubUser.Login
-		return db.Save(&existingUser).Error
+		if hasChanges := compareUsers(existingUser, githubUser); hasChanges {
+			return db.Save(&githubUser).Error
+		}
+		return nil
 	}
+
 	return db.Create(&githubUser).Error
 }
 
-func (h *handlers) updateOrCreatePublicRepo(db *gorm.DB, publicRepo model.PublicRepo) error {
-	existingRepo := model.PublicRepo{}
-	if err := db.Where("name = ?", publicRepo.Name).First(&existingRepo).Error; err == nil {
-		existingRepo.Description = publicRepo.Description
-		return db.Save(&existingRepo).Error
-	}
-	return db.Create(&publicRepo).Error
+func compareUsers(existingUser, newUser model.GhUser) bool {
+	return existingUser.AvatarUrl != newUser.AvatarUrl ||
+	 existingUser.Role != newUser.Role ||
+		existingUser.Login != newUser.Login
 }

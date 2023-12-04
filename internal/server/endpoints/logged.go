@@ -10,17 +10,25 @@ import (
 
 func (h *handlers) Logged(w http.ResponseWriter, r *http.Request, githubData string) {
 	if githubData == "" {
-		fmt.Fprintf(w, "UNAUTHORIZED!")
+		http.Error(w, "UNAUTHORIZED!", http.StatusUnauthorized)
 		return
 	}
 
-	w.Header().Set("Content-type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 
 	var prettyJSON bytes.Buffer
-	parserr := json.Indent(&prettyJSON, []byte(githubData), "", "\t")
-	if parserr != nil {
-		log.Panic("JSON parse error")
+	if err := json.Indent(&prettyJSON, []byte(githubData), "", "\t"); err != nil {
+		log.Printf("JSON parse error: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 
-	fmt.Fprintf(w, string(prettyJSON.Bytes()))
+	_, err := fmt.Fprintf(w, string(prettyJSON.Bytes()))
+	if err != nil {
+		log.Printf("Error writing response: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Successful response for request from %s", r.RemoteAddr)
 }

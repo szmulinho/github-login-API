@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"github.com/szmulinho/github-login/internal/config"
 	"github.com/szmulinho/github-login/internal/model"
 	"gorm.io/driver/postgres"
@@ -8,7 +9,7 @@ import (
 )
 
 func Migrate(db *gorm.DB) error {
-	if err := db.AutoMigrate(&model.GithubUser{}); err != nil {
+	if err := db.AutoMigrate(&model.GhUser{}); err != nil {
 		return err
 	}
 	return nil
@@ -20,23 +21,21 @@ func Connect() (*gorm.DB, error) {
 
 	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to the database: %w", err)
 	}
 
 	if err := Migrate(db); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to perform database migration: %w", err)
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get database connection pool: %w", err)
 	}
+
 	sqlDB.SetMaxOpenConns(10)
 	sqlDB.SetMaxIdleConns(5)
 
-	if err := Migrate(db); err != nil {
-		return nil, err
-	}
-
 	return db, nil
 }
+

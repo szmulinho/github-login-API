@@ -2,7 +2,7 @@ package endpoints
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 )
@@ -10,28 +10,32 @@ import (
 func (h *handlers) getData(accessToken, apiUrl string) (string, error) {
 	req, err := http.NewRequest("GET", apiUrl, nil)
 	if err != nil {
-		log.Println("API Request creation failed:", err)
-		return "", err
+		log.Printf("API Request creation failed: %v", err)
+		return "", fmt.Errorf("API Request creation failed: %w", err)
 	}
 
 	req.Header.Set("Authorization", "token "+accessToken)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Println("Request failed:", err)
-		return "", err
+		log.Printf("Request failed: %v", err)
+		return "", fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			log.Printf("Error closing response body: %v", closeErr)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Println("Non-OK status code received:", resp.StatusCode)
-		return "", fmt.Errorf("Non-OK status code: %d", resp.StatusCode)
+		log.Printf("Non-OK status code received: %d", resp.StatusCode)
+		return "", fmt.Errorf("Non-OK status code received: %d", resp.StatusCode)
 	}
 
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("Response read failed:", err)
-		return "", err
+		log.Printf("Response read failed: %v", err)
+		return "", fmt.Errorf("response read failed: %w", err)
 	}
 
 	return string(respBody), nil

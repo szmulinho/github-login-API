@@ -8,14 +8,9 @@ import (
 	"github.com/szmulinho/github-login/internal/model"
 )
 
-const (
-	szmulMedRepoName      = "szmul-med"
-)
-
 
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
-
 	token, err := Config.Exchange(r.Context(), code)
 	if err != nil {
 		http.Error(w, "Failed to exchange code for token", http.StatusBadRequest)
@@ -26,33 +21,33 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	userURL := "https://api.github.com/user"
 	githubData, err := h.getData(token.AccessToken, userURL)
 	if err != nil {
-		handleError(w, "Error fetching user data from GitHub", http.StatusInternalServerError, err)
+		http.Error(w, "Error fetching user data from GitHub", http.StatusInternalServerError)
 		return
 	}
 
 	reposURL := "https://api.github.com/user/repos"
 	reposResp, err := h.getData(token.AccessToken, reposURL)
 	if err != nil {
-		handleError(w, "Error fetching user repositories", http.StatusInternalServerError, err)
+		http.Error(w, "Error fetching user repositories", http.StatusInternalServerError)
 		return
 	}
 
-	var githubUser model.GithubUser
+	var githubUser model.GhUser
 	var publicRepos []model.PublicRepo
 
 	if err := json.Unmarshal([]byte(githubData), &githubUser); err != nil {
-		handleError(w, "Error parsing GitHub data", http.StatusInternalServerError, err)
+		http.Error(w, "Error parsing GitHub data", http.StatusInternalServerError)
 		return
 	}
 
 	if err := json.Unmarshal([]byte(reposResp), &publicRepos); err != nil {
-		handleError(w, "Error parsing GitHub repositories data", http.StatusInternalServerError, err)
+		http.Error(w, "Error parsing GitHub repositories data", http.StatusInternalServerError)
 		return
 	}
 
 	var hasSzmulMedRepo bool
 	for _, repo := range publicRepos {
-		if repo.Name == szmulMedRepoName {
+		if repo.Name == "szmul-med" {
 			hasSzmulMedRepo = true
 			break
 		}
@@ -65,14 +60,14 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 
-	if err := h.updateOrCreateGitHubUser(h.db, githubUser); err != nil {
-		handleError(w, "Failed to update/create GitHub user in the database", http.StatusInternalServerError, err)
+	if err := updateOrCreateGitHubUser(h.db, githubUser); err != nil {
+		http.Error(w, "Failed to update/create GitHub user in the database", http.StatusInternalServerError)
 		return
 	}
 
 	updatedGithubData, err := json.Marshal(githubUser)
 	if err != nil {
-		handleError(w, "Error serializing updated GitHub data", http.StatusInternalServerError, err)
+		http.Error(w, "Error serializing updated GitHub data", http.StatusInternalServerError)
 		return
 	}
 

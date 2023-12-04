@@ -10,7 +10,6 @@ import (
 
 func main() {
 	fmt.Println("Starting the application...")
-	defer fmt.Println("Closing the application...")
 
 	db, err := database.Connect()
 	if err != nil {
@@ -19,7 +18,7 @@ func main() {
 
 	ctx, _, wait := utils.Gracefully()
 
-	server.Run(ctx, db)
+	server.Run(ctx ,db)
 
 	wait()
 }
