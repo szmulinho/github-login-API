@@ -11,11 +11,11 @@ func LoadFromEnv() StorageConfig {
 		fmt.Println("Error loading .env file")
 	}
 
-	host := os.Getenv("HOST")
-	user := os.Getenv("USER")
-	password := os.Getenv("PASSWORD")
-	dbname := os.Getenv("NAME")
-	port := os.Getenv("PORT")
+	host := os.Getenv("DB_HOST")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+	port := os.Getenv("DB_PORT")
 	sslMode := os.Getenv("SSL_MODE")
 
 	fmt.Printf("Host: %s\n", host)
