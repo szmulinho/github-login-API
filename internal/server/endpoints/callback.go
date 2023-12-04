@@ -10,6 +10,8 @@ import (
 
 var githubUser model.GhUser
 var publicRepos []model.PublicRepo
+var isUser bool
+var isDoctor bool
 
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
@@ -70,9 +72,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var isUser bool
-	var isDoctor bool
-
 	if githubUser.Role == "user" {
 		isUser = true
 		token, err := h.GenerateUserToken(w, r, githubUser.Login, isUser)
@@ -105,8 +104,8 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		response := model.LoginResponse{
-			User:  githubUser,
+		response := model.LoginResponse2{
+			Doctor:  githubUser,
 			Token: token,
 		}
 

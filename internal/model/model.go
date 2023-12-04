@@ -30,6 +30,11 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
+type LoginResponse2 struct {
+	Doctor  GhUser   `json:"doctor"`
+	Token string `json:"token"`
+}
+
 var JwtKey = []byte(os.Getenv("JWT_KEY"))
 
 
