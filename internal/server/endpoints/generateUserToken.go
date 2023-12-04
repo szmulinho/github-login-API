@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func (h *handlers) GenerateToken(w http.ResponseWriter, r *http.Request, Login string, isUser bool) (string, error) {
+func (h *handlers) GenerateUserToken(w http.ResponseWriter, r *http.Request, Login string, isUser bool) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userLogin": Login,
 		"isUser": isUser,

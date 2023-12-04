@@ -71,31 +71,55 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var isUser bool
+	var isDoctor bool
 
 	if githubUser.Role == "user" {
 		isUser = true
+		token, err := h.GenerateUserToken(w, r, githubUser.Login, isUser)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		response := model.LoginResponse{
+			User:  githubUser,
+			Token: token,
+		}
+
+		responseJSON, err := json.Marshal(response)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(responseJSON)
 	}
 
-	token2, err := h.GenerateToken(w, r, githubUser.Login, isUser)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	if githubUser.Role == "doctor" {
+		isDoctor = true
+		token, err := h.GenerateDoctorToken(w, r, githubUser.Login, isDoctor)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	response := model.LoginResponse{
-		User:  githubUser,
-		Token: token2,
-	}
+		response := model.LoginResponse{
+			User:  githubUser,
+			Token: token,
+		}
 
-	responseJSON, err := json.Marshal(response)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+		responseJSON, err := json.Marshal(response)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(responseJSON)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(responseJSON)
+	}
 
 	userData = string(updatedGithubData)
 
