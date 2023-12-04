@@ -21,14 +21,14 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userURL := "https://api.github.com/user"
-	userData, err := h.getData(token.AccessToken, userURL)
+	userData, err := getData(token.AccessToken, userURL)
 	if err != nil {
 		http.Error(w, "Error fetching user data from GitHub", http.StatusInternalServerError)
 		return
 	}
 
 	reposURL := "https://api.github.com/user/repos"
-	reposData, err := h.getData(token.AccessToken, reposURL)
+	reposData, err := getData(token.AccessToken, reposURL)
 	if err != nil {
 		http.Error(w, "Error fetching user repositories", http.StatusInternalServerError)
 		return

@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func (h *handlers) getData(accessToken, apiUrl string) (string, error) {
+func getData(accessToken, apiUrl string) (string, error) {
 	req, err := http.NewRequest("GET", apiUrl, nil)
 	if err != nil {
 		log.Printf("API Request creation failed: %v", err)

@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func (h *handlers) Logged(w http.ResponseWriter, r *http.Request, userData string) {
+func Logged(w http.ResponseWriter, r *http.Request, userData string) {
 	if userData == "" {
 		http.Error(w, "UNAUTHORIZED!", http.StatusUnauthorized)
 		return
