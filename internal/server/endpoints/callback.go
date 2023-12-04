@@ -72,5 +72,5 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	userData = string(updatedGithubData)
 
-	h.Logged(w, r, userData)
+	Logged(w, r, userData)
 }
