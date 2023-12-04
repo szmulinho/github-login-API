@@ -10,54 +10,6 @@ import (
 
 var githubUser model.GhUser
 var publicRepos []model.PublicRepo
-var isUser bool
-var isDoctor bool
-
-func (h *handlers) generateUserToken(w http.ResponseWriter, r *http.Request) {
-	token, err := h.GenerateUserToken(w, r, githubUser.Login, isUser)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	response := model.LoginResponse{
-		User:  githubUser,
-		Token: token,
-	}
-
-	responseJSON, err := json.Marshal(response)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(responseJSON)
-}
-
-func (h *handlers) generateDoctorToken(w http.ResponseWriter, r *http.Request) {
-	token, err := h.GenerateDoctorToken(w, r, githubUser.Login, isDoctor)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	response := model.LoginResponse2{
-		Doctor: githubUser,
-		Token:  token,
-	}
-
-	responseJSON, err := json.Marshal(response)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(responseJSON)
-}
 
 func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
@@ -116,16 +68,6 @@ func (h *handlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Error serializing updated GitHub data", http.StatusInternalServerError)
 		return
-	}
-
-	if githubUser.Role == "user" {
-		isUser = true
-		h.generateUserToken(w, r)
-	}
-
-	if githubUser.Role == "doctor" {
-		isDoctor = true
-		h.generateDoctorToken(w, r)
 	}
 
 	userData = string(updatedGithubData)
