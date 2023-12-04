@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"os"
 )
 
 type GhUser struct {
@@ -23,5 +24,12 @@ func (u *GhUser) Value() (driver.Value, error) {
 func (u *GhUser) Scan(value interface{}) error {
 	return json.Unmarshal(value.([]byte), u)
 }
+
+type LoginResponse struct {
+	User  GhUser   `json:"user"`
+	Token string `json:"token"`
+}
+
+var JwtKey = []byte(os.Getenv("JWT_KEY"))
 
 

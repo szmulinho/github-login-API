@@ -8,6 +8,7 @@ import (
 type Handlers interface {
 	HandleLogin(w http.ResponseWriter, r *http.Request)
 	HandleCallback(w http.ResponseWriter, r *http.Request)
+	GenerateToken(w http.ResponseWriter, r *http.Request, Login string, isUser bool) (string, error)
 }
 
 type handlers struct {
