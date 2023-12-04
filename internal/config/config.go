@@ -16,14 +16,14 @@ func LoadFromEnv() StorageConfig {
 	password := os.Getenv("PASSWORD")
 	dbname := os.Getenv("NAME")
 	port := os.Getenv("PORT")
-	//sslMode := os.Getenv("SSL_MODE")
+	sslMode := os.Getenv("SSL_MODE")
 
 	fmt.Printf("Host: %s\n", host)
 	fmt.Printf("User: %s\n", user)
 	fmt.Printf("Password: %s\n", password)
 	fmt.Printf("DBName: %s\n", dbname)
 	fmt.Printf("Port: %s\n", port)
-	//fmt.Printf("SSL: %s\n", sslMode)
+	fmt.Printf("SSL: %s\n", sslMode)
 
 	return StorageConfig{
 		Host:     host,
@@ -31,7 +31,7 @@ func LoadFromEnv() StorageConfig {
 		Password: password,
 		Dbname:   dbname,
 		Port:     port,
-		//SslMode:  sslMode,
+		SslMode:  sslMode,
 	}
 }
 
@@ -41,12 +41,12 @@ type StorageConfig struct {
 	Password string `json:"password"`
 	Dbname   string `json:"dbname"`
 	Port    string `json:"port"`
-	//SslMode string `json:"sslmode"`
+	SslMode string `json:"ssl_mode"`
 
 }
 
 func (c StorageConfig) ConnectionString() string {
-	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s",
-		c.Host, c.User, c.Password, c.Dbname, c.Port)
+	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s ssl_mode=%s",
+		c.Host, c.User, c.Password, c.Dbname, c.Port, c.SslMode)
 	return connectionString
 }
