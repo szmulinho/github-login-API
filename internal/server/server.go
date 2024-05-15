@@ -14,6 +14,7 @@ func Run(ctx context.Context ,db *gorm.DB) {
 	handler := endpoints.NewHandler(db)
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/callback", handler.HandleCallback)
+	router.HandleFunc("/login", handler.HandleLogin)
 	cors := handlers.CORS(
 		handlers.AllowedOrigins([]string{"*"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}),

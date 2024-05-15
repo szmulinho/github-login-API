@@ -24,7 +24,7 @@ func TestHandleCallback(t *testing.T) {
 	password := os.Getenv("DB_PASSWORD")
 	port := os.Getenv("DB_PORT")
 
-	dsn := "host=" + host + " user=" + user + " dbname=" + name + " sslmode=require password=" + password + " port=" + port
+	dsn := "host=" + host + " user=" + user + " dbname=" + name + " password=" + password + " port=" + port
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
