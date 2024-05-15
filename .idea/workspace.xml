@@ -1,7 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="373786f3-8f9a-4eb3-a470-473a6bd97c31" name="Changes" comment="" />
+    <list default="true" id="373786f3-8f9a-4eb3-a470-473a6bd97c31" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/internal/server/endpoints/.env.test" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/model/model.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/model/model.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/MIGRATION_GUIDE.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/VERSION_HISTORY.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/claims.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/doc.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/ecdsa.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/ecdsa_utils.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/ed25519.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/ed25519_utils.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/errors.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/hmac.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/map_claims.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/none.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/parser.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/rsa.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/rsa_pss.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/rsa_utils.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/signing_method.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/github.com/golang-jwt/jwt/token.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/modules.txt" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/modules.txt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -38,6 +66,7 @@
       <workItem from="1701275317870" duration="25000" />
       <workItem from="1701336088140" duration="146000" />
       <workItem from="1701631098476" duration="63000" />
+      <workItem from="1708613893981" duration="189000" />
     </task>
     <servers />
   </component>
